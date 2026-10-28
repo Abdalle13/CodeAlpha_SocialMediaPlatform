@@ -4,14 +4,36 @@ import { Wordmark } from '../components/Wordmark';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Toast } from '../components/Toast';
+import { useAuth } from '../features/auth/AuthContext';
 
 export function ForgotPasswordPage() {
+  const { resetPasswordForEmail, isConfigured } = useAuth();
   const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [noticeMessage, setNoticeMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsLoading(true);
+    setNoticeMessage('');
+
+    try {
+      await resetPasswordForEmail(email);
+      setIsSuccess(true);
+      setNoticeMessage('If an account exists with this email, password recovery instructions have been sent to your inbox.');
+    } catch (err) {
+      // In production or unconfigured environments:
+      if (!isConfigured) {
+        setNoticeMessage('Email delivery requires configured Supabase Auth credentials in environment variables.');
+      } else {
+        // Generic response to prevent account enumeration
+        setIsSuccess(true);
+        setNoticeMessage('If an account exists with this email, password recovery instructions have been sent to your inbox.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -23,16 +45,18 @@ export function ForgotPasswordPage() {
           </Link>
           <h1 className="text-xl font-serif text-primary">Reset password</h1>
           <p className="text-xs text-secondary">
-            Enter your email address and we'll send you recovery instructions.
+            Enter your account email to receive recovery instructions.
           </p>
         </div>
 
-        {submitted ? (
+        {noticeMessage && (
           <Toast
-            type="info"
-            message="If an account exists with this email, password recovery instructions will be delivered (configured in Phase 2)."
+            type={isSuccess ? 'success' : 'info'}
+            message={noticeMessage}
           />
-        ) : (
+        )}
+
+        {!isSuccess && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Email Address"
@@ -44,8 +68,14 @@ export function ForgotPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
 
-            <Button type="submit" variant="primary" size="md" className="w-full justify-center">
-              Send reset link
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              isLoading={isLoading}
+              className="w-full justify-center"
+            >
+              Send reset instructions
             </Button>
           </form>
         )}
@@ -60,4 +90,3 @@ export function ForgotPasswordPage() {
     </div>
   );
 }
-

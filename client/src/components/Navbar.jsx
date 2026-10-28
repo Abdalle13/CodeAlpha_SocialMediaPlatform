@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, LogOut, User } from 'lucide-react';
 import { Wordmark } from './Wordmark';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from './Button';
+import { useAuth } from '../features/auth/AuthContext';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-
-  const isPublicPage = ['/', '/terms', '/privacy', '/404'].includes(location.pathname);
+  const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
 
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
   const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  const handleSignOut = async () => {
+    closeMobileMenu();
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/90 backdrop-blur-md transition-colors">
@@ -42,12 +49,32 @@ export function Navbar() {
         {/* Actions & Theme */}
         <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
-          <Link to="/login">
-            <Button variant="ghost" size="sm">Log in</Button>
-          </Link>
-          <Link to="/register">
-            <Button variant="primary" size="sm">Create account</Button>
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium text-secondary">
+                {profile?.display_name || user.email}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="gap-1.5"
+                aria-label="Sign out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign out</span>
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Log in</Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="primary" size="sm">Create account</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile menu trigger */}
@@ -88,15 +115,28 @@ export function Navbar() {
               onClick={closeMobileMenu}
               className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
             >
-              Privacy Policy
+              Privacy Notice
             </Link>
             <div className="pt-3 border-t border-border flex flex-col gap-2">
-              <Link to="/login" onClick={closeMobileMenu}>
-                <Button variant="secondary" className="w-full justify-center">Log in</Button>
-              </Link>
-              <Link to="/register" onClick={closeMobileMenu}>
-                <Button variant="primary" className="w-full justify-center">Create account</Button>
-              </Link>
+              {user ? (
+                <Button
+                  variant="outline"
+                  onClick={handleSignOut}
+                  className="w-full justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign out ({profile?.display_name || user.email})</span>
+                </Button>
+              ) : (
+                <>
+                  <Link to="/login" onClick={closeMobileMenu}>
+                    <Button variant="secondary" className="w-full justify-center">Log in</Button>
+                  </Link>
+                  <Link to="/register" onClick={closeMobileMenu}>
+                    <Button variant="primary" className="w-full justify-center">Create account</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>
@@ -104,4 +144,3 @@ export function Navbar() {
     </header>
   );
 }
-

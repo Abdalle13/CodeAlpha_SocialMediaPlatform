@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Wordmark } from '../components/Wordmark';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Toast } from '../components/Toast';
+import { useAuth } from '../features/auth/AuthContext';
 
 export function RegisterPage() {
+  const navigate = useNavigate();
+  const { signUp, isConfigured } = useAuth();
+
   const [formData, setFormData] = useState({
     displayName: '',
     username: '',
@@ -14,9 +18,10 @@ export function RegisterPage() {
     confirmPassword: '',
     agreeTerms: false,
   });
-  const [infoMessage, setInfoMessage] = useState(
-    'Phase 1 preview: Form layout and design tokens are active. Full Supabase account creation connects in Phase 2.'
-  );
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successNotice, setSuccessNotice] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -26,11 +31,53 @@ export function RegisterPage() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setInfoMessage(
-      'Account registration will create persistent records upon Phase 2 database & auth initialization.'
-    );
+    setErrorMessage('');
+    setSuccessNotice('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMessage('Passwords do not match.');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setErrorMessage('Password must be at least 8 characters long.');
+      return;
+    }
+
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+    if (!usernameRegex.test(formData.username)) {
+      setErrorMessage('Username must be 3-30 alphanumeric characters or underscores.');
+      return;
+    }
+
+    if (!formData.agreeTerms) {
+      setErrorMessage('You must accept the Terms of Service and Privacy Notice.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const data = await signUp({
+        email: formData.email,
+        password: formData.password,
+        username: formData.username,
+        displayName: formData.displayName,
+      });
+
+      // If email confirmation is required by Supabase settings:
+      if (data?.user && !data.session) {
+        setSuccessNotice('Account created! Please check your email to confirm your account before signing in.');
+      } else {
+        navigate('/', { replace: true });
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Unable to create account. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -42,15 +89,29 @@ export function RegisterPage() {
           </Link>
           <h1 className="text-xl font-serif text-primary">Create your account</h1>
           <p className="text-xs text-secondary">
-            Join Veyra to share photographs, write thoughts, and connect.
+            Join Veyra to share moments and connect with creators.
           </p>
         </div>
 
-        {infoMessage && (
+        {!isConfigured && (
           <Toast
             type="info"
-            message={infoMessage}
-            onClose={() => setInfoMessage('')}
+            message="Live account creation requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your local environment."
+          />
+        )}
+
+        {errorMessage && (
+          <Toast
+            type="error"
+            message={errorMessage}
+            onClose={() => setErrorMessage('')}
+          />
+        )}
+
+        {successNotice && (
+          <Toast
+            type="success"
+            message={successNotice}
           />
         )}
 
@@ -95,6 +156,7 @@ export function RegisterPage() {
               required
               autoComplete="new-password"
               placeholder="••••••••"
+              hint="Min 8 characters"
               value={formData.password}
               onChange={handleChange}
             />
@@ -130,7 +192,13 @@ export function RegisterPage() {
             </label>
           </div>
 
-          <Button type="submit" variant="primary" size="md" className="w-full justify-center">
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            isLoading={isLoading}
+            className="w-full justify-center"
+          >
             Create account
           </Button>
         </form>
@@ -145,4 +213,3 @@ export function RegisterPage() {
     </div>
   );
 }
-

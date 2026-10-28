@@ -1,45 +1,66 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Wordmark } from '../components/Wordmark';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Toast } from '../components/Toast';
+import { useAuth } from '../features/auth/AuthContext';
 
 export function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [infoMessage, setInfoMessage] = useState(
-    'Phase 1 preview: Form layout and design tokens are active. Full Supabase authentication connects in Phase 2.'
-  );
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn, isConfigured } = useAuth();
 
-  const handleSubmit = (e) => {
+  const [identity, setIdentity] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const from = location.state?.from?.pathname || '/';
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setInfoMessage(
-      'Authentication engine will process sign-in upon Phase 2 database & auth initialization.'
-    );
+    setErrorMessage('');
+    setIsLoading(true);
+
+    try {
+      await signIn(identity, password, rememberMe);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setErrorMessage(err.message || 'Unable to sign in. Please check your credentials and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-sm space-y-8 bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
+      <div className="w-full max-w-sm space-y-7 bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-block focus-visible:outline-accent rounded">
             <Wordmark size="lg" />
           </Link>
           <h1 className="text-xl font-serif text-primary">Welcome back</h1>
           <p className="text-xs text-secondary">
-            Sign in to your account to view your feed.
+            Sign in to your account to share and explore.
           </p>
         </div>
 
-        {infoMessage && (
+        {!isConfigured && (
           <Toast
             type="info"
-            message={infoMessage}
-            onClose={() => setInfoMessage('')}
+            message="Live authentication requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your local environment."
+          />
+        )}
+
+        {errorMessage && (
+          <Toast
+            type="error"
+            message={errorMessage}
+            onClose={() => setErrorMessage('')}
           />
         )}
 
@@ -50,9 +71,9 @@ export function LoginPage() {
             type="text"
             required
             autoComplete="username"
-            placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            placeholder="elena or elena@example.com"
+            value={identity}
+            onChange={(e) => setIdentity(e.target.value)}
           />
 
           <div className="space-y-1 text-left">
@@ -98,7 +119,13 @@ export function LoginPage() {
             </label>
           </div>
 
-          <Button type="submit" variant="primary" size="md" className="w-full justify-center">
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            isLoading={isLoading}
+            className="w-full justify-center"
+          >
             Sign in
           </Button>
         </form>
@@ -113,4 +140,3 @@ export function LoginPage() {
     </div>
   );
 }
-

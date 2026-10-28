@@ -1,20 +1,73 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Wordmark } from '../components/Wordmark';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Toast } from '../components/Toast';
+import { useAuth } from '../features/auth/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
 export function ResetPasswordPage() {
+  const navigate = useNavigate();
+  const { updatePassword, isConfigured } = useAuth();
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [statusMessage, setStatusMessage] = useState(
-    'Phase 1 preview: Password reset session handler connects in Phase 2.'
-  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [hasValidSession, setHasValidSession] = useState(false);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    // Check if user reached this route via Supabase recovery link
+    async function checkRecoverySession() {
+      if (!isConfigured) return;
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setHasValidSession(true);
+      } else {
+        // Look for recovery hash or error in URL
+        const hash = window.location.hash;
+        if (hash.includes('error=')) {
+          setStatusMessage('Your password recovery link is invalid or has expired. Please request a new one.');
+        } else if (hash.includes('access_token=')) {
+          setHasValidSession(true);
+        }
+      }
+    }
+
+    checkRecoverySession();
+  }, [isConfigured]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatusMessage('Password update will execute via Supabase Auth in Phase 2.');
+    setStatusMessage('');
+
+    if (password !== confirmPassword) {
+      setStatusMessage('Passwords do not match.');
+      return;
+    }
+
+    if (password.length < 8) {
+      setStatusMessage('Password must be at least 8 characters long.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await updatePassword(password);
+      setIsSuccess(true);
+      setStatusMessage('Password updated successfully! Redirecting to sign in...');
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 2000);
+    } catch (err) {
+      setStatusMessage(err.message || 'Unable to update password. Your recovery link may have expired.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,37 +85,52 @@ export function ResetPasswordPage() {
 
         {statusMessage && (
           <Toast
-            type="info"
+            type={isSuccess ? 'success' : 'error'}
             message={statusMessage}
             onClose={() => setStatusMessage('')}
           />
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="New Password"
-            type="password"
-            required
-            autoComplete="new-password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        {!hasValidSession && !isSuccess && (
+          <div className="text-xs text-secondary bg-page p-3.5 rounded-lg border border-border">
+            Enter your new password below. If your recovery link has expired, you can request a new one.
+          </div>
+        )}
 
-          <Input
-            label="Confirm Password"
-            type="password"
-            required
-            autoComplete="new-password"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+        {!isSuccess && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="New Password"
+              type="password"
+              required
+              autoComplete="new-password"
+              placeholder="••••••••"
+              hint="Min 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-          <Button type="submit" variant="primary" size="md" className="w-full justify-center">
-            Update password
-          </Button>
-        </form>
+            <Input
+              label="Confirm Password"
+              type="password"
+              required
+              autoComplete="new-password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              isLoading={isLoading}
+              className="w-full justify-center"
+            >
+              Update password
+            </Button>
+          </form>
+        )}
 
         <div className="text-center text-xs text-secondary pt-2 border-t border-border">
           <Link to="/login" className="font-semibold text-accent hover:underline focus-visible:outline-accent rounded">
@@ -73,4 +141,3 @@ export function ResetPasswordPage() {
     </div>
   );
 }
-
