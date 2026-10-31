@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, User } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings } from 'lucide-react';
 import { Wordmark } from './Wordmark';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from './Button';
+import { Avatar } from './Avatar';
 import { useAuth } from '../features/auth/AuthContext';
 
 export function Navbar() {
@@ -51,9 +52,24 @@ export function Navbar() {
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-3">
-              <span className="text-xs font-medium text-secondary">
-                {profile?.display_name || user.email}
-              </span>
+              <Link
+                to={profile?.username ? `/profile/${profile.username}` : '#'}
+                className="flex items-center gap-2 hover:opacity-85 transition-opacity focus-visible:outline-accent rounded py-1 px-1.5"
+              >
+                <Avatar
+                  src={profile?.avatar_url}
+                  name={profile?.display_name || user.email}
+                  size="sm"
+                />
+                <span className="text-xs font-medium text-primary">
+                  {profile?.display_name || user.email}
+                </span>
+              </Link>
+              <Link to="/settings/profile" title="Edit Profile">
+                <Button variant="ghost" size="sm" className="px-2" aria-label="Profile Settings">
+                  <Settings className="w-4 h-4 text-secondary" />
+                </Button>
+              </Link>
               <Button
                 variant="outline"
                 size="sm"
@@ -119,14 +135,43 @@ export function Navbar() {
             </Link>
             <div className="pt-3 border-t border-border flex flex-col gap-2">
               {user ? (
-                <Button
-                  variant="outline"
-                  onClick={handleSignOut}
-                  className="w-full justify-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign out ({profile?.display_name || user.email})</span>
-                </Button>
+                <>
+                  <Link
+                    to={profile?.username ? `/profile/${profile.username}` : '#'}
+                    onClick={closeMobileMenu}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                  >
+                    <Avatar
+                      src={profile?.avatar_url}
+                      name={profile?.display_name || user.email}
+                      size="sm"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-primary truncate">
+                        {profile?.display_name || user.email}
+                      </p>
+                      {profile?.username && (
+                        <p className="text-xs text-secondary truncate">@{profile.username}</p>
+                      )}
+                    </div>
+                  </Link>
+                  <Link
+                    to="/settings/profile"
+                    onClick={closeMobileMenu}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-secondary hover:text-primary hover:bg-page transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Edit profile</span>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={handleSignOut}
+                    className="w-full justify-center gap-2 mt-1"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign out</span>
+                  </Button>
+                </>
               ) : (
                 <>
                   <Link to="/login" onClick={closeMobileMenu}>

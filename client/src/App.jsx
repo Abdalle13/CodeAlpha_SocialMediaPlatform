@@ -10,6 +10,8 @@ import { LoginPage } from './routes/LoginPage';
 import { RegisterPage } from './routes/RegisterPage';
 import { ForgotPasswordPage } from './routes/ForgotPasswordPage';
 import { ResetPasswordPage } from './routes/ResetPasswordPage';
+import { ProfilePage } from './routes/ProfilePage';
+import { SettingsProfilePage } from './routes/SettingsProfilePage';
 import { NotFoundPage } from './routes/NotFoundPage';
 
 export function App() {
@@ -27,6 +29,8 @@ export function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/profile/:username" element={<ProfilePage />} />
+              <Route path="/settings/profile" element={<SettingsProfilePage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
