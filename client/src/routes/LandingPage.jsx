@@ -19,7 +19,7 @@ export function LandingPage() {
             </h1>
 
             <p className="text-base sm:text-lg text-secondary leading-relaxed max-w-2xl font-sans">
-              Veyra is a calm, personal place to share photographs, write thoughts, and connect with people. No algorithmic clutter, no manipulative metrics—just clean editorial typography and genuine community.
+              Veyra is a calm, personal place to share photographs, write thoughts, and connect with people. No algorithmic clutter, no manipulative metrics, just clean editorial typography and genuine community.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 w-full sm:w-auto">
