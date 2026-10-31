@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../features/auth/AuthContext';
@@ -7,6 +7,7 @@ import { LoginPage } from '../routes/LoginPage';
 import { RegisterPage } from '../routes/RegisterPage';
 import { ForgotPasswordPage } from '../routes/ForgotPasswordPage';
 import { ResetPasswordPage } from '../routes/ResetPasswordPage';
+import { supabase } from '../lib/supabaseClient';
 
 function renderWithProviders(ui) {
   return render(
@@ -19,6 +20,9 @@ function renderWithProviders(ui) {
 }
 
 describe('Authentication Pages & Form Validation', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
   describe('LoginPage', () => {
     it('renders login form with remember me checkbox and credentials inputs', () => {
       renderWithProviders(<LoginPage />);
@@ -91,6 +95,11 @@ describe('Authentication Pages & Form Validation', () => {
 
   describe('ForgotPasswordPage', () => {
     it('presents informative guidance without account enumeration', async () => {
+      vi.spyOn(supabase.auth, 'resetPasswordForEmail').mockResolvedValue({
+        data: {},
+        error: null,
+      });
+
       renderWithProviders(<ForgotPasswordPage />);
       const emailInput = screen.getByLabelText(/email address/i);
       fireEvent.change(emailInput, { target: { value: 'someone@example.com' } });

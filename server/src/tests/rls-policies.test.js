@@ -7,9 +7,11 @@ describe('Database Migrations and RLS Policy Specifications', () => {
   const schemaFile = path.join(migrationsDir, '00001_initial_schema.sql');
   const rlsFile = path.join(migrationsDir, '00002_rls_and_security.sql');
 
+  const readSql = (filePath) => fs.readFileSync(filePath, 'utf-8').replace(/\r\n/g, '\n');
+
   it('migration 00001_initial_schema.sql exists and contains core tables', () => {
     expect(fs.existsSync(schemaFile)).toBe(true);
-    const sql = fs.readFileSync(schemaFile, 'utf-8');
+    const sql = readSql(schemaFile);
 
     // Assert essential tables exist
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS public.profiles');
@@ -31,7 +33,7 @@ describe('Database Migrations and RLS Policy Specifications', () => {
 
   it('migration 00002_rls_and_security.sql enables RLS on all tables', () => {
     expect(fs.existsSync(rlsFile)).toBe(true);
-    const sql = fs.readFileSync(rlsFile, 'utf-8');
+    const sql = readSql(rlsFile);
 
     const expectedRlsTables = [
       'profiles',
@@ -57,7 +59,7 @@ describe('Database Migrations and RLS Policy Specifications', () => {
   });
 
   it('migration 00002 enforces zero-argument is_admin and safe search_path', () => {
-    const sql = fs.readFileSync(rlsFile, 'utf-8');
+    const sql = readSql(rlsFile);
 
     // Zero-argument is_admin resolving auth.uid() internally
     expect(sql).toContain('CREATE OR REPLACE FUNCTION public.is_admin()');
@@ -72,7 +74,7 @@ describe('Database Migrations and RLS Policy Specifications', () => {
   });
 
   it('migration 00002 enforces column-level privilege protection on profiles.role and profiles.status', () => {
-    const sql = fs.readFileSync(rlsFile, 'utf-8');
+    const sql = readSql(rlsFile);
 
     expect(sql).toContain('REVOKE UPDATE ON public.profiles FROM authenticated, anon, PUBLIC;');
     expect(sql).toContain('GRANT UPDATE (');
@@ -85,7 +87,7 @@ describe('Database Migrations and RLS Policy Specifications', () => {
   });
 
   it('migration 00002 secures conversation provisioning and enforces message immutability', () => {
-    const sql = fs.readFileSync(rlsFile, 'utf-8');
+    const sql = readSql(rlsFile);
 
     // Revoke direct client INSERTs
     expect(sql).toContain('REVOKE INSERT ON public.conversations, public.conversation_participants FROM authenticated, anon, PUBLIC;');
@@ -105,7 +107,7 @@ describe('Database Migrations and RLS Policy Specifications', () => {
   });
 
   it('migration 00002 restricts execute_admin_moderation exclusively to service_role', () => {
-    const sql = fs.readFileSync(rlsFile, 'utf-8');
+    const sql = readSql(rlsFile);
 
     expect(sql).toContain('CREATE OR REPLACE FUNCTION public.execute_admin_moderation');
     expect(sql).toContain('auth.role() <> \'service_role\'');
