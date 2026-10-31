@@ -114,4 +114,39 @@ describe('Database Migrations and RLS Policy Specifications', () => {
     expect(sql).toContain('REVOKE ALL ON FUNCTION public.execute_admin_moderation(uuid, text, text, uuid, text, jsonb) FROM PUBLIC, anon, authenticated;');
     expect(sql).toContain('GRANT EXECUTE ON FUNCTION public.execute_admin_moderation(uuid, text, text, uuid, text, jsonb) TO service_role;');
   });
+
+  it('migration 00003_phase4_social_features.sql configures post_media RLS, replies, and author moderation', () => {
+    const phase4File = path.join(migrationsDir, '00003_phase4_social_features.sql');
+    expect(fs.existsSync(phase4File)).toBe(true);
+    const sql = readSql(phase4File);
+
+    // Comments parent_id and hierarchy
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES public.comments(id)');
+    expect(sql).toContain('CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON public.comments(parent_id);');
+    expect(sql).toContain('CHECK (parent_id IS NULL OR parent_id <> id)');
+
+    // Post media RLS policies
+    expect(sql).toContain('CREATE POLICY "Post media viewable on accessible posts"');
+    expect(sql).toContain('CREATE POLICY "Authors can insert media on own posts"');
+    expect(sql).toContain('CREATE POLICY "Authors can delete media from own posts"');
+
+    // Helper function for bidirectional block checks
+    expect(sql).toContain('CREATE OR REPLACE FUNCTION public.are_users_blocked');
+    expect(sql).toContain('SET search_path = public, pg_temp');
+    expect(sql).toContain('REVOKE ALL ON FUNCTION public.are_users_blocked(uuid, uuid) FROM PUBLIC, anon;');
+
+    // Posts followers-only and block protection
+    expect(sql).toContain('CREATE POLICY "Posts viewable by authorized users"');
+    expect(sql).toContain('visibility = \'followers\'');
+    expect(sql).toContain('NOT public.are_users_blocked(auth.uid(), posts.author_id)');
+
+    // Reply integrity check in comment creation policy
+    expect(sql).toContain('CREATE OR REPLACE FUNCTION public.is_valid_comment_parent');
+    expect(sql).toContain('comments.parent_id IS NULL');
+    expect(sql).toContain('public.is_valid_comment_parent(comments.parent_id, comments.post_id)');
+
+    // Post author moderation on comments
+    expect(sql).toContain('CREATE POLICY "Users can delete own comments or comments on own posts"');
+    expect(sql).toContain('WHERE posts.id = comments.post_id\n        AND posts.author_id = auth.uid()');
+  });
 });
