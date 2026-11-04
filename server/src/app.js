@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config/env.js';
 import { healthRouter } from './routes/health.js';
 import { mediaRouter } from './routes/media.js';
+import { moderationRouter } from './routes/moderation.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -47,6 +48,7 @@ export function createApp() {
   // Routes
   app.use('/api', healthRouter);
   app.use('/api', mediaRouter);
+  app.use('/api', moderationRouter);
 
   // 404 & Global Error Handlers
   app.use(notFoundHandler);

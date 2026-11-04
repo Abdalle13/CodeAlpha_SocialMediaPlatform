@@ -10,6 +10,7 @@ import {
   Bell,
   MessageSquare,
   Home,
+  Shield,
 } from 'lucide-react';
 import { Wordmark } from './Wordmark';
 import { ThemeToggle } from './ThemeToggle';
@@ -141,8 +142,15 @@ export function Navbar() {
                   {profile?.display_name || user.email}
                 </span>
               </Link>
-              <Link to="/settings/profile" title="Edit Profile">
-                <Button variant="ghost" size="sm" className="px-2" aria-label="Profile Settings">
+              {profile?.role === 'admin' && (
+                <Link to="/admin" title="Admin Console">
+                  <Button variant="ghost" size="sm" className="px-2 text-accent" aria-label="Admin Console">
+                    <Shield className="w-4 h-4" />
+                  </Button>
+                </Link>
+              )}
+              <Link to="/settings/profile" title="Account Settings">
+                <Button variant="ghost" size="sm" className="px-2" aria-label="Account Settings">
                   <Settings className="w-4 h-4 text-secondary" />
                 </Button>
               </Link>
@@ -293,13 +301,23 @@ export function Navbar() {
                       )}
                     </div>
                   </Link>
+                  {profile?.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      onClick={closeMobileMenu}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-accent hover:bg-page transition-colors font-medium"
+                    >
+                      <Shield className="w-4 h-4" />
+                      <span>Admin Console</span>
+                    </Link>
+                  )}
                   <Link
                     to="/settings/profile"
                     onClick={closeMobileMenu}
                     className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-secondary hover:text-primary hover:bg-page transition-colors"
                   >
                     <Settings className="w-4 h-4" />
-                    <span>Edit profile</span>
+                    <span>Account settings</span>
                   </Link>
                   <Button
                     variant="outline"

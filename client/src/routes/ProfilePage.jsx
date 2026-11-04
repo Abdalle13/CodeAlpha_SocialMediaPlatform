@@ -10,11 +10,13 @@ import {
   Bookmark,
   Check,
   UserX,
+  Flag,
 } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
 import { useProfile } from '../features/profiles/useProfile';
 import { usePosts } from '../features/posts/usePosts';
 import { PostCard } from '../features/posts/PostCard';
+import { ReportModal } from '../features/moderation/ReportModal';
 import { FollowersModal } from '../features/profiles/FollowersModal';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
@@ -45,6 +47,7 @@ export function ProfilePage() {
   const [modalType, setModalType] = useState(null); // 'followers' | 'following' | null
   const [toastMessage, setToastMessage] = useState(null);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const [userPosts, setUserPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -292,6 +295,17 @@ export function ProfilePage() {
                           <UserX className="w-3.5 h-3.5" />
                           <span>{isBlocked ? 'Unblock user' : 'Block user'}</span>
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOptionsOpen(false);
+                            setReportModalOpen(true);
+                          }}
+                          className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-secondary hover:text-danger hover:bg-page transition-colors"
+                        >
+                          <Flag className="w-3.5 h-3.5" />
+                          <span>Report user</span>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -481,6 +495,17 @@ export function ProfilePage() {
           userId={profile.id}
           username={profile.username}
           type={modalType}
+        />
+      )}
+
+      {/* User Report Modal */}
+      {reportModalOpen && (
+        <ReportModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          targetType="user"
+          targetId={profile.id}
+          targetName={`@${profile.username}`}
         />
       )}
     </div>

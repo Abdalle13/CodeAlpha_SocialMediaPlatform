@@ -210,3 +210,4 @@ export function NotificationsPage() {
     </div>
   );
 }
+

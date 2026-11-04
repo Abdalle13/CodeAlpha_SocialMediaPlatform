@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Camera, Trash2, ArrowLeft, Check, AlertCircle } from 'lucide-react';
+import { Camera, Trash2, ArrowLeft, Check, AlertCircle, Shield, User } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
 import { uploadToImageKit, deleteFromImageKit } from '../features/media/imagekit';
 import { supabase } from '../lib/supabaseClient';
@@ -13,6 +13,8 @@ export function SettingsProfilePage() {
   const { user, profile, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'security'
+
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [website, setWebsite] = useState('');
@@ -20,6 +22,12 @@ export function SettingsProfilePage() {
   const [avatarFileId, setAvatarFileId] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
   const [coverFileId, setCoverFileId] = useState('');
+
+  // Password update state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(null);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -51,6 +59,32 @@ export function SettingsProfilePage() {
   const showToast = (message, type = 'info') => {
     setToastMessage({ message, type });
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
+
+    setPasswordError(null);
+    setIsChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setNewPassword('');
+      setConfirmPassword('');
+      showToast('Password updated successfully.', 'success');
+    } catch (err) {
+      setPasswordError(err.message || 'Could not update password.');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const handleAvatarChange = async (e) => {
@@ -186,7 +220,7 @@ export function SettingsProfilePage() {
       )}
 
       {/* Header with Back Link */}
-      <div className="flex items-center justify-between pb-6 border-b border-border mb-8">
+      <div className="flex items-center justify-between pb-6 border-b border-border mb-6">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Link
@@ -197,14 +231,44 @@ export function SettingsProfilePage() {
               <span>Back to profile</span>
             </Link>
           </div>
-          <h1 className="text-2xl font-serif font-medium text-primary">Edit Profile</h1>
+          <h1 className="text-2xl font-serif font-medium text-primary">Account Settings</h1>
           <p className="text-xs text-secondary">
-            Manage your personal presence and information on Veyra.
+            Manage your personal profile, account security, and credentials on Veyra.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Tabs */}
+      <div className="flex gap-6 border-b border-border mb-8">
+        <button
+          type="button"
+          onClick={() => setActiveTab('profile')}
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold border-b-2 transition-colors ${
+            activeTab === 'profile'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-secondary hover:text-primary'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          <span>Profile Details</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('security')}
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold border-b-2 transition-colors ${
+            activeTab === 'security'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-secondary hover:text-primary'
+          }`}
+        >
+          <Shield className="w-4 h-4" />
+          <span>Security & Password</span>
+        </button>
+      </div>
+
+      {activeTab === 'profile' ? (
+        <form onSubmit={handleSubmit} className="space-y-8">
         {/* Cover Photo Management */}
         <div className="space-y-2">
           <label className="block text-xs font-semibold uppercase tracking-wider text-secondary">
@@ -373,6 +437,85 @@ export function SettingsProfilePage() {
           </Button>
         </div>
       </form>
+      ) : (
+        /* Security and Credentials Tab */
+        <div className="space-y-8">
+          <form onSubmit={handlePasswordChange} className="rounded-xl border border-border bg-surface p-6 space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-primary">Change Password</h2>
+              <p className="text-xs text-secondary mt-0.5">
+                Ensure your account is protected using a strong, unique password.
+              </p>
+            </div>
+
+            {passwordError && (
+              <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-2.5 text-xs text-red-600 dark:text-red-400">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{passwordError}</span>
+              </div>
+            )}
+
+            <div className="space-y-4 max-w-md">
+              <Input
+                label="New Password"
+                type="password"
+                id="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                required
+              />
+
+              <Input
+                label="Confirm New Password"
+                type="password"
+                id="confirm-new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat new password"
+                required
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                isLoading={isChangingPassword}
+                disabled={!newPassword || isChangingPassword}
+              >
+                Update password
+              </Button>
+            </div>
+          </form>
+
+          {/* Account Metadata Details */}
+          <div className="rounded-xl border border-border bg-surface p-6 space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-primary">Account Information</h2>
+              <p className="text-xs text-secondary mt-0.5">
+                Authentication and credential identifiers registered with Veyra.
+              </p>
+            </div>
+
+            <div className="divide-y divide-border/60 text-xs">
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-secondary font-medium">Email address</span>
+                <span className="text-primary font-mono">{user?.email}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-secondary font-medium">User Identifier</span>
+                <span className="text-primary font-mono text-[11px]">{user?.id}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-secondary font-medium">Member since</span>
+                <span className="text-primary">
+                  {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Active'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

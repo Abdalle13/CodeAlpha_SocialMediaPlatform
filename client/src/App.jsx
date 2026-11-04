@@ -17,6 +17,7 @@ import { ForgotPasswordPage } from './routes/ForgotPasswordPage';
 import { ResetPasswordPage } from './routes/ResetPasswordPage';
 import { ProfilePage } from './routes/ProfilePage';
 import { SettingsProfilePage } from './routes/SettingsProfilePage';
+import { AdminDashboardPage } from './routes/AdminDashboardPage';
 import { NotFoundPage } from './routes/NotFoundPage';
 
 function HomeRoute() {
@@ -57,9 +58,10 @@ export function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-              {/* Profile and Settings */}
+              {/* Profile, Settings, and Admin */}
               <Route path="/profile/:username" element={<ProfilePage />} />
               <Route path="/settings/profile" element={<ProtectedRoute><SettingsProfilePage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
 
               {/* Catch-All */}
               <Route path="*" element={<NotFoundPage />} />

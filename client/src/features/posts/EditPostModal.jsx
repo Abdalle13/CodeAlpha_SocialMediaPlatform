@@ -106,3 +106,4 @@ export function EditPostModal({ isOpen, onClose, post, onUpdate }) {
     </Dialog>
   );
 }
+

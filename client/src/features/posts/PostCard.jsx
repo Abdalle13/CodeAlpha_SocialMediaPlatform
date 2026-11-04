@@ -5,6 +5,7 @@ import { usePostInteractions } from './usePostInteractions';
 import { CommentThread } from './CommentThread';
 import { EditPostModal } from './EditPostModal';
 import { ImageViewerModal } from './ImageViewerModal';
+import { ReportModal } from '../moderation/ReportModal';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
 import {
@@ -18,6 +19,7 @@ import {
   Globe,
   Users,
   Check,
+  Flag,
 } from 'lucide-react';
 
 function formatPostDate(isoString) {
@@ -48,6 +50,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }) {
   const [activeMediaUrl, setActiveMediaUrl] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const author = post.profiles;
   const mediaList = post.post_media || [];
@@ -151,7 +154,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }) {
                 <span>{copiedLink ? 'Link copied' : 'Copy link'}</span>
               </button>
 
-              {isAuthor && (
+              {isAuthor ? (
                 <>
                   <button
                     type="button"
@@ -174,6 +177,18 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }) {
                     <span>{isDeleting ? 'Deleting...' : 'Delete post'}</span>
                   </button>
                 </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setIsReportModalOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-left text-secondary hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                >
+                  <Flag className="w-3.5 h-3.5" />
+                  <span>Report post</span>
+                </button>
               )}
             </div>
           )}
@@ -293,6 +308,18 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }) {
           src={activeMediaUrl}
         />
       )}
+
+      {/* Report Modal */}
+      {isReportModalOpen && (
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          targetType="post"
+          targetId={post.id}
+          targetName="this post"
+        />
+      )}
     </article>
   );
 }
+

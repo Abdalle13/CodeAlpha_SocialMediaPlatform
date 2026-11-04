@@ -47,3 +47,4 @@ export function ImageViewerModal({ isOpen, onClose, src, alt = 'Photo preview' }
     </div>
   );
 }
+
