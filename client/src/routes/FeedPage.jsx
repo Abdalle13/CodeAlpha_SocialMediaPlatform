@@ -42,22 +42,18 @@ export function FeedPage() {
         <PostComposer onPostCreated={handlePostCreated} />
       </div>
 
-      {/* Feed Controls */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <h1 className="text-sm font-semibold text-primary uppercase tracking-wider">
-          Home Feed
-        </h1>
-        <Button
-          variant="ghost"
-          size="sm"
+      {/* Feed Stream */}
+      <div className="flex items-center justify-end mb-3 px-1">
+        <button
+          type="button"
           onClick={refresh}
           disabled={isLoading}
-          className="gap-1.5 text-xs text-secondary hover:text-primary"
-          aria-label="Refresh feed"
+          className="flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-primary transition-colors disabled:opacity-50"
+          title="Refresh feed"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </Button>
+          <span>Latest updates</span>
+        </button>
       </div>
 
       {/* Error Banner */}

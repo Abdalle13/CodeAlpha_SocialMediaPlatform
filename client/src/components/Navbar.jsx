@@ -18,13 +18,15 @@ import { Button } from './Button';
 import { Avatar } from './Avatar';
 import { useAuth } from '../features/auth/AuthContext';
 import { useNotifications } from '../features/notifications/useNotifications';
+import { useMessages } from '../features/messages/useMessages';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
-  const { unreadCount } = useNotifications();
+  const { unreadCount: unreadNotifications } = useNotifications();
+  const { unreadCount: unreadMessages } = useMessages();
 
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -76,12 +78,17 @@ export function Navbar() {
 
               <Link
                 to="/messages"
-                className={`flex items-center gap-1.5 transition-colors focus-visible:outline-accent rounded py-1 px-1.5 ${
+                className={`relative flex items-center gap-1.5 transition-colors focus-visible:outline-accent rounded py-1 px-1.5 ${
                   isActive('/messages') ? 'text-accent font-semibold' : 'hover:text-primary'
                 }`}
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Messages</span>
+                {unreadMessages > 0 && (
+                  <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                  </span>
+                )}
               </Link>
 
               <Link
@@ -92,9 +99,9 @@ export function Navbar() {
               >
                 <Bell className="w-4 h-4" />
                 <span>Activity</span>
-                {unreadCount > 0 && (
+                {unreadNotifications > 0 && (
                   <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
                   </span>
                 )}
               </Link>
@@ -217,10 +224,17 @@ export function Navbar() {
                 <Link
                   to="/messages"
                   onClick={closeMobileMenu}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-page transition-colors"
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Messages</span>
+                  <div className="flex items-center gap-2.5">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Messages</span>
+                  </div>
+                  {unreadMessages > 0 && (
+                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+                      {unreadMessages}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   to="/notifications"
@@ -231,9 +245,9 @@ export function Navbar() {
                     <Bell className="w-4 h-4" />
                     <span>Notifications</span>
                   </div>
-                  {unreadCount > 0 && (
+                  {unreadNotifications > 0 && (
                     <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-                      {unreadCount}
+                      {unreadNotifications}
                     </span>
                   )}
                 </Link>

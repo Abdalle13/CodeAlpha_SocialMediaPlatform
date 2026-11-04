@@ -244,9 +244,12 @@ export function useMessages(activeConversationId = null) {
     }
   };
 
+  const unreadCount = conversations.filter((c) => c.isUnread).length;
+
   return {
     conversations,
     messages,
+    unreadCount,
     isLoadingConversations,
     isLoadingMessages,
     isSending,

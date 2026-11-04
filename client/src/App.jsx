@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { Navbar } from './components/Navbar';
-import { Footer } from './components/Footer';
 import { LandingPage } from './routes/LandingPage';
 import { FeedPage } from './routes/FeedPage';
 import { ExplorePage } from './routes/ExplorePage';
@@ -19,16 +18,25 @@ import { ProfilePage } from './routes/ProfilePage';
 import { SettingsProfilePage } from './routes/SettingsProfilePage';
 import { AdminDashboardPage } from './routes/AdminDashboardPage';
 import { NotFoundPage } from './routes/NotFoundPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <div className="h-7 w-7 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+    </div>
+  );
+}
 
 function HomeRoute() {
   const { user, isLoading } = useAuth();
-  if (isLoading) return null;
+  if (isLoading) return <LoadingScreen />;
   return user ? <FeedPage /> : <LoginPage />;
 }
 
 function ProtectedRoute({ children }) {
   const { user, isLoading } = useAuth();
-  if (isLoading) return null;
+  if (isLoading) return <LoadingScreen />;
   return user ? children : <Navigate to="/login" replace />;
 }
 
@@ -39,7 +47,8 @@ export function App() {
         <div className="flex min-h-screen flex-col bg-page text-primary selection:bg-accent-soft selection:text-accent">
           <Navbar />
           <main className="flex-1">
-            <Routes>
+            <ErrorBoundary>
+              <Routes>
               {/* Home and Core Features */}
               <Route path="/" element={<HomeRoute />} />
               <Route path="/welcome" element={<LandingPage />} />
@@ -67,8 +76,8 @@ export function App() {
               {/* Catch-All */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
-          </main>
-          <Footer />
+          </ErrorBoundary>
+        </main>
         </div>
       </BrowserRouter>
     </AuthProvider>

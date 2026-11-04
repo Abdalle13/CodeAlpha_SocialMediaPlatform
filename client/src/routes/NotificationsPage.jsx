@@ -15,6 +15,15 @@ import {
 } from 'lucide-react';
 
 function getNotificationContent(item) {
+  if (!item) {
+    return {
+      icon: Bell,
+      iconClass: 'text-secondary bg-surface',
+      text: <span>New notification</span>,
+      link: null,
+    };
+  }
+
   const actorName = item.actor?.display_name || item.actor?.username || 'Someone';
 
   switch (item.type) {
@@ -78,18 +87,23 @@ function getNotificationContent(item) {
 
 function formatNotificationTime(isoString) {
   if (!isoString) return '';
-  const date = new Date(isoString);
-  const now = new Date();
-  const diffInMinutes = Math.floor((now - date) / 60000);
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / 60000);
 
-  if (diffInMinutes < 1) return 'Just now';
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays}d ago`;
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
 
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch {
+    return '';
+  }
 }
 
 export function NotificationsPage() {
@@ -154,7 +168,11 @@ export function NotificationsPage() {
       ) : (
         <div className="space-y-2">
           {notifications.map((item) => {
-            const { icon: Icon, iconClass, text, link } = getNotificationContent(item);
+            const itemContent = getNotificationContent(item) || {};
+            const Icon = itemContent.icon || Bell;
+            const iconClass = itemContent.iconClass || 'text-secondary bg-surface';
+            const text = itemContent.text || 'Notification';
+            const link = itemContent.link || null;
             const isUnread = !item.read_at;
 
             const cardContent = (
@@ -171,7 +189,7 @@ export function NotificationsPage() {
                 <div className="relative shrink-0">
                   <Avatar
                     src={item.actor?.avatar_url}
-                    name={item.actor?.display_name || 'Member'}
+                    name={item.actor?.display_name || item.actor?.username || 'Member'}
                     size="md"
                   />
                   <div
@@ -182,7 +200,7 @@ export function NotificationsPage() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-primary leading-relaxed">{text}</p>
+                  <div className="text-xs text-primary leading-relaxed">{text}</div>
                   <p className="text-[11px] text-secondary mt-0.5">
                     {formatNotificationTime(item.created_at)}
                   </p>

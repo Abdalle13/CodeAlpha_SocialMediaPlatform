@@ -252,7 +252,12 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }) {
             className="flex items-center gap-1.5 text-xs font-medium hover:text-primary transition-colors focus-visible:outline-accent rounded"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Discussion</span>
+            <span>Comments</span>
+            {(post.comments?.length || 0) > 0 && (
+              <span className="rounded-full bg-red-500/15 text-red-500 font-semibold px-1.5 py-0.2 text-[10px]">
+                {post.comments.length}
+              </span>
+            )}
           </button>
         </div>
 
