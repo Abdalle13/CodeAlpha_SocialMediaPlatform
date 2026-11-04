@@ -29,3 +29,4 @@ CREATE POLICY "Admins can update profile status"
 ON public.profiles FOR UPDATE TO authenticated
 USING (public.is_admin() OR id = auth.uid())
 WITH CHECK (public.is_admin() OR id = auth.uid());
+
