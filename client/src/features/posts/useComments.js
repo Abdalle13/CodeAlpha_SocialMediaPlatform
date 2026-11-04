@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 const PAGE_SIZE = 20;
 
 const COMMENT_SELECT =
-  '*, profiles(id, username, display_name, avatar_url)';
+  '*, profiles:profiles!author_id(id, username, display_name, avatar_url)';
 
 export function useComments(postId) {
   const { user } = useAuth();

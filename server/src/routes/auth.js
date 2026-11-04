@@ -50,3 +50,4 @@ authRouter.post('/auth/check-email', async (req, res) => {
     });
   }
 });
+

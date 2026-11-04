@@ -28,7 +28,7 @@ export function ExplorePage() {
       let query = supabase
         .from('posts')
         .select(
-          '*, profiles(id, username, display_name, avatar_url), post_media(*), likes(user_id), saved_posts(user_id)'
+          '*, profiles:profiles!author_id(id, username, display_name, avatar_url), post_media(*), likes(user_id), saved_posts(user_id)'
         )
         .eq('status', 'active')
         .eq('visibility', 'public')

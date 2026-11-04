@@ -79,7 +79,7 @@ export function ProfilePage() {
           created_at,
           posts (
             *,
-            profiles (id, username, display_name, avatar_url),
+            profiles:profiles!author_id (id, username, display_name, avatar_url),
             post_media (*),
             likes (user_id),
             saved_posts (user_id)

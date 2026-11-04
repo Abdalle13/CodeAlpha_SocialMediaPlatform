@@ -7,7 +7,7 @@ const PAGE_SIZE = 15;
 // Selects all post fields plus related profile, media, likes, and saves so
 // the feed card has everything it needs in a single query.
 const FEED_SELECT =
-  '*, profiles(id, username, display_name, avatar_url), post_media(*), likes(user_id), saved_posts(user_id)';
+  '*, profiles:profiles!author_id(id, username, display_name, avatar_url), post_media(*), likes(user_id), saved_posts(user_id)';
 
 export function useFeed() {
   const { user } = useAuth();
