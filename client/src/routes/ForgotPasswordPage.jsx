@@ -5,31 +5,49 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Toast } from '../components/Toast';
 import { useAuth } from '../features/auth/AuthContext';
+import { apiClient } from '../lib/api';
 
 export function ForgotPasswordPage() {
   const { resetPasswordForEmail, isConfigured } = useAuth();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [noticeMessage, setNoticeMessage] = useState('');
+  const [noticeType, setNoticeType] = useState('info');
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email.trim()) return;
+
     setIsLoading(true);
     setNoticeMessage('');
 
     try {
-      await resetPasswordForEmail(email);
+      // 1. Check if the account actually exists in the database
+      const checkRes = await apiClient('/auth/check-email', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim() }),
+      }).catch(() => null);
+
+      if (checkRes && checkRes.exists === false) {
+        setNoticeType('error');
+        setNoticeMessage('No account found with this email address.');
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Account exists: trigger Supabase password reset email
+      await resetPasswordForEmail(email.trim());
       setIsSuccess(true);
-      setNoticeMessage('If an account exists with this email, password recovery instructions have been sent to your inbox.');
+      setNoticeType('success');
+      setNoticeMessage('Password recovery instructions have been sent to your email inbox.');
     } catch (err) {
-      // In production or unconfigured environments:
       if (!isConfigured) {
-        setNoticeMessage('Email delivery requires configured Supabase Auth credentials in environment variables.');
+        setNoticeType('error');
+        setNoticeMessage('Email delivery requires configured Supabase Auth credentials.');
       } else {
-        // Generic response to prevent account enumeration
-        setIsSuccess(true);
-        setNoticeMessage('If an account exists with this email, password recovery instructions have been sent to your inbox.');
+        setNoticeType('error');
+        setNoticeMessage(err.message || 'Could not send recovery instructions.');
       }
     } finally {
       setIsLoading(false);
@@ -51,8 +69,9 @@ export function ForgotPasswordPage() {
 
         {noticeMessage && (
           <Toast
-            type={isSuccess ? 'success' : 'info'}
+            type={noticeType}
             message={noticeMessage}
+            onClose={() => setNoticeMessage('')}
           />
         )}
 

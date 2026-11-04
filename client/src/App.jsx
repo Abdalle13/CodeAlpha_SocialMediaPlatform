@@ -23,7 +23,7 @@ import { NotFoundPage } from './routes/NotFoundPage';
 function HomeRoute() {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
-  return user ? <FeedPage /> : <LandingPage />;
+  return user ? <FeedPage /> : <LoginPage />;
 }
 
 function ProtectedRoute({ children }) {
@@ -42,6 +42,7 @@ export function App() {
             <Routes>
               {/* Home and Core Features */}
               <Route path="/" element={<HomeRoute />} />
+              <Route path="/welcome" element={<LandingPage />} />
               <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/saved" element={<ProtectedRoute><SavedPostsPage /></ProtectedRoute>} />
