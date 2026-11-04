@@ -6,13 +6,15 @@ import { PostCard } from '../features/posts/PostCard';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Skeleton } from '../components/Skeleton';
-import { RefreshCw, Sparkles } from 'lucide-react';
+import { RefreshCw, Sparkles, Bell, Bookmark } from 'lucide-react';
 import { Wordmark } from '../components/Wordmark';
 import { Link } from 'react-router-dom';
+import { useNotifications } from '../features/notifications/useNotifications';
 
 export function FeedPage() {
   const { posts, isLoading, isLoadingMore, hasMore, error, loadMore, refresh } = useFeed();
   const { deletePost, updatePost } = usePosts();
+  const { unreadCount: unreadNotifications } = useNotifications();
   const [feedPosts, setFeedPosts] = useState([]);
 
   useEffect(() => {
@@ -41,16 +43,34 @@ export function FeedPage() {
       {/* Top Header Bar */}
       <div className="flex items-center justify-between mb-6 px-1">
         <Wordmark size="md" />
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={isLoading}
-          className="flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-primary transition-colors disabled:opacity-50"
-          title="Refresh feed"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Latest updates</span>
-        </button>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Link
+            to="/notifications"
+            className="relative p-2 rounded-full text-secondary hover:text-primary hover:bg-surface transition-colors"
+            title="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+            {unreadNotifications > 0 && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-page" />
+            )}
+          </Link>
+          <Link
+            to="/saved"
+            className="p-2 rounded-full text-secondary hover:text-primary hover:bg-surface transition-colors"
+            title="Saved Posts"
+          >
+            <Bookmark className="w-5 h-5" />
+          </Link>
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={isLoading}
+            className="flex items-center p-2 rounded-full text-secondary hover:text-primary hover:bg-surface transition-colors disabled:opacity-50"
+            title="Refresh feed"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Post creation box */}

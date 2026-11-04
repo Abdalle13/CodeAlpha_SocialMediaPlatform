@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Globe,
@@ -11,6 +11,9 @@ import {
   Check,
   UserX,
   Flag,
+  Settings,
+  LogOut,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
 import { useProfile } from '../features/profiles/useProfile';
@@ -23,11 +26,13 @@ import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { Toast } from '../components/Toast';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { supabase } from '../lib/supabaseClient';
 
 export function ProfilePage() {
   const { username } = useParams();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const {
     profile,
     followerCount,
@@ -240,13 +245,68 @@ export function ProfilePage() {
             </div>
 
             {/* Profile Action Buttons */}
-            <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               {isOwnProfile ? (
-                <Link to="/settings/profile">
-                  <Button variant="outline" size="sm">
-                    Edit profile
-                  </Button>
-                </Link>
+                <>
+                  <Link to="/settings/profile">
+                    <Button variant="outline" size="sm">
+                      Edit profile
+                    </Button>
+                  </Link>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setOptionsOpen((prev) => !prev)}
+                      aria-label="Profile settings"
+                      className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-border bg-surface text-secondary hover:text-primary hover:bg-page transition-colors focus-visible:outline-accent"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
+
+                    {optionsOpen && (
+                      <div className="absolute right-0 mt-1.5 w-48 rounded-xl border border-border bg-surface shadow-lg py-1.5 z-20 text-xs animate-in fade-in duration-100">
+                        <Link
+                          to="/settings/profile"
+                          onClick={() => setOptionsOpen(false)}
+                          className="w-full px-3.5 py-2 flex items-center gap-2.5 text-primary hover:bg-page transition-colors"
+                        >
+                          <Settings className="w-3.5 h-3.5 text-secondary" />
+                          <span>Account Settings</span>
+                        </Link>
+
+                        {profile?.role === 'admin' && (
+                          <Link
+                            to="/admin"
+                            onClick={() => setOptionsOpen(false)}
+                            className="w-full px-3.5 py-2 flex items-center gap-2.5 text-amber-500 hover:bg-amber-500/10 transition-colors"
+                          >
+                            <Shield className="w-3.5 h-3.5" />
+                            <span>Admin Console</span>
+                          </Link>
+                        )}
+
+                        <div className="px-3.5 py-2 flex items-center justify-between text-secondary border-t border-border/70 my-1">
+                          <span>Theme</span>
+                          <ThemeToggle />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setOptionsOpen(false);
+                            await signOut();
+                            navigate('/login');
+                          }}
+                          className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-red-500 hover:bg-red-500/10 transition-colors border-t border-border/70"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign out</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : user ? (
                 <>
                   <Button
