@@ -1,19 +1,31 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, User, Settings } from 'lucide-react';
+import {
+  Menu,
+  X,
+  LogOut,
+  Settings,
+  Compass,
+  Bookmark,
+  Bell,
+  MessageSquare,
+  Home,
+} from 'lucide-react';
 import { Wordmark } from './Wordmark';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from './Button';
 import { Avatar } from './Avatar';
 import { useAuth } from '../features/auth/AuthContext';
+import { useNotifications } from '../features/notifications/useNotifications';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
 
-  const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
+  const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   const handleSignOut = async () => {
@@ -21,6 +33,8 @@ export function Navbar() {
     await signOut();
     navigate('/login');
   };
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/90 backdrop-blur-md transition-colors">
@@ -31,18 +45,80 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-secondary" aria-label="Main navigation">
-          {location.pathname === '/' ? (
+        <nav
+          className="hidden md:flex items-center gap-6 text-sm font-medium text-secondary"
+          aria-label="Main navigation"
+        >
+          {user ? (
             <>
-              <a href="#features" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">Features</a>
-              <a href="#preview" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">Experience</a>
-              <a href="#principles" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">Principles</a>
+              <Link
+                to="/"
+                className={`flex items-center gap-1.5 transition-colors focus-visible:outline-accent rounded py-1 px-1.5 ${
+                  isActive('/') || isActive('/feed')
+                    ? 'text-accent font-semibold'
+                    : 'hover:text-primary'
+                }`}
+              >
+                <Home className="w-4 h-4" />
+                <span>Feed</span>
+              </Link>
+
+              <Link
+                to="/explore"
+                className={`flex items-center gap-1.5 transition-colors focus-visible:outline-accent rounded py-1 px-1.5 ${
+                  isActive('/explore') ? 'text-accent font-semibold' : 'hover:text-primary'
+                }`}
+              >
+                <Compass className="w-4 h-4" />
+                <span>Explore</span>
+              </Link>
+
+              <Link
+                to="/messages"
+                className={`flex items-center gap-1.5 transition-colors focus-visible:outline-accent rounded py-1 px-1.5 ${
+                  isActive('/messages') ? 'text-accent font-semibold' : 'hover:text-primary'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Messages</span>
+              </Link>
+
+              <Link
+                to="/notifications"
+                className={`relative flex items-center gap-1.5 transition-colors focus-visible:outline-accent rounded py-1 px-1.5 ${
+                  isActive('/notifications') ? 'text-accent font-semibold' : 'hover:text-primary'
+                }`}
+              >
+                <Bell className="w-4 h-4" />
+                <span>Activity</span>
+                {unreadCount > 0 && (
+                  <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              <Link
+                to="/saved"
+                className={`flex items-center gap-1.5 transition-colors focus-visible:outline-accent rounded py-1 px-1.5 ${
+                  isActive('/saved') ? 'text-accent font-semibold' : 'hover:text-primary'
+                }`}
+              >
+                <Bookmark className="w-4 h-4" />
+                <span>Saved</span>
+              </Link>
             </>
           ) : (
             <>
-              <Link to="/" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">Home</Link>
-              <Link to="/terms" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">Terms</Link>
-              <Link to="/privacy" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">Privacy</Link>
+              <Link to="/explore" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">
+                Explore
+              </Link>
+              <Link to="/terms" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">
+                Terms
+              </Link>
+              <Link to="/privacy" className="hover:text-primary transition-colors focus-visible:outline-accent rounded">
+                Privacy
+              </Link>
             </>
           )}
         </nav>
@@ -111,28 +187,90 @@ export function Navbar() {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-border bg-surface px-4 py-5 shadow-lg animate-in slide-in-from-top-2 duration-150">
-          <nav className="flex flex-col gap-3 text-sm font-medium text-primary">
-            <Link
-              to="/"
-              onClick={closeMobileMenu}
-              className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
-            >
-              Home
-            </Link>
-            <Link
-              to="/terms"
-              onClick={closeMobileMenu}
-              className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              to="/privacy"
-              onClick={closeMobileMenu}
-              className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
-            >
-              Privacy Notice
-            </Link>
+          <nav className="flex flex-col gap-2.5 text-sm font-medium text-primary">
+            {user ? (
+              <>
+                <Link
+                  to="/"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  <Home className="w-4 h-4 text-accent" />
+                  <span>Feed</span>
+                </Link>
+                <Link
+                  to="/explore"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  <Compass className="w-4 h-4" />
+                  <span>Explore</span>
+                </Link>
+                <Link
+                  to="/messages"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Messages</span>
+                </Link>
+                <Link
+                  to="/notifications"
+                  onClick={closeMobileMenu}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Bell className="w-4 h-4" />
+                    <span>Notifications</span>
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  to="/saved"
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  <Bookmark className="w-4 h-4" />
+                  <span>Saved</span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/"
+                  onClick={closeMobileMenu}
+                  className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/explore"
+                  onClick={closeMobileMenu}
+                  className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  Explore
+                </Link>
+                <Link
+                  to="/terms"
+                  onClick={closeMobileMenu}
+                  className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  Terms of Service
+                </Link>
+                <Link
+                  to="/privacy"
+                  onClick={closeMobileMenu}
+                  className="px-3 py-2 rounded-lg hover:bg-page transition-colors"
+                >
+                  Privacy Notice
+                </Link>
+              </>
+            )}
+
             <div className="pt-3 border-t border-border flex flex-col gap-2">
               {user ? (
                 <>

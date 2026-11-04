@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Calendar,
@@ -13,12 +13,15 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
 import { useProfile } from '../features/profiles/useProfile';
+import { usePosts } from '../features/posts/usePosts';
+import { PostCard } from '../features/posts/PostCard';
 import { FollowersModal } from '../features/profiles/FollowersModal';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { Toast } from '../components/Toast';
+import { supabase } from '../lib/supabaseClient';
 
 export function ProfilePage() {
   const { username } = useParams();
@@ -36,13 +39,75 @@ export function ProfilePage() {
     unfollow,
     toggleBlock,
   } = useProfile(username);
+  const { fetchUserPosts, deletePost, updatePost } = usePosts();
 
   const [activeTab, setActiveTab] = useState('posts');
   const [modalType, setModalType] = useState(null); // 'followers' | 'following' | null
   const [toastMessage, setToastMessage] = useState(null);
   const [optionsOpen, setOptionsOpen] = useState(false);
 
+  const [userPosts, setUserPosts] = useState([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
+
   const isOwnProfile = user && profile && user.id === profile.id;
+
+  const loadUserPosts = useCallback(async () => {
+    if (!profile?.id) return;
+    setLoadingPosts(true);
+    try {
+      const res = await fetchUserPosts(profile.id);
+      setUserPosts(res.posts || []);
+    } catch (err) {
+      console.error('Error fetching user posts:', err);
+    } finally {
+      setLoadingPosts(false);
+    }
+  }, [profile?.id, fetchUserPosts]);
+
+  const loadSavedPosts = useCallback(async () => {
+    if (!isOwnProfile || !user) return;
+    setLoadingSaved(true);
+    try {
+      const { data } = await supabase
+        .from('saved_posts')
+        .select(`
+          created_at,
+          posts (
+            *,
+            profiles (id, username, display_name, avatar_url),
+            post_media (*),
+            likes (user_id),
+            saved_posts (user_id)
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      const validPosts = (data || [])
+        .map((row) => row.posts)
+        .filter((p) => p && p.status === 'active');
+
+      setSavedPosts(validPosts);
+    } catch (err) {
+      console.error('Error fetching saved posts:', err);
+    } finally {
+      setLoadingSaved(false);
+    }
+  }, [isOwnProfile, user]);
+
+  useEffect(() => {
+    if (profile?.id) {
+      loadUserPosts();
+    }
+  }, [profile?.id, loadUserPosts]);
+
+  useEffect(() => {
+    if (activeTab === 'saved') {
+      loadSavedPosts();
+    }
+  }, [activeTab, loadSavedPosts]);
 
   const showToast = (message, type = 'info') => {
     setToastMessage({ message, type });
@@ -338,23 +403,73 @@ export function ProfilePage() {
       </div>
 
       {/* Tab Panels */}
-      <div className="py-12">
+      <div className="py-6">
         {activeTab === 'posts' ? (
-          <EmptyState
-            icon={Grid}
-            title="No posts yet"
-            description={
-              isOwnProfile
-                ? 'Photographs and thoughts you share will appear here on your profile.'
-                : `@${profile.username} has not published any posts yet.`
-            }
-          />
-        ) : (
+          loadingPosts ? (
+            <div className="space-y-4 max-w-2xl mx-auto">
+              {[1, 2].map((i) => (
+                <div key={i} className="rounded-xl border border-border bg-surface p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <div className="space-y-1.5 flex-1">
+                      <Skeleton className="w-28 h-4 rounded" />
+                      <Skeleton className="w-16 h-3 rounded" />
+                    </div>
+                  </div>
+                  <Skeleton className="w-full h-20 rounded-lg" />
+                </div>
+              ))}
+            </div>
+          ) : userPosts.length === 0 ? (
+            <EmptyState
+              icon={Grid}
+              title="No posts yet"
+              description={
+                isOwnProfile
+                  ? 'Photographs and thoughts you share will appear here on your profile.'
+                  : `@${profile.username} has not published any posts yet.`
+              }
+            />
+          ) : (
+            <div className="space-y-4 max-w-2xl mx-auto">
+              {userPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={{ ...post, profiles: profile }}
+                  onPostDeleted={(deletedId) => {
+                    setUserPosts((prev) => prev.filter((p) => p.id !== deletedId));
+                  }}
+                  onPostUpdated={(postId, updates) => {
+                    setUserPosts((prev) =>
+                      prev.map((p) => (p.id === postId ? { ...p, ...updates } : p))
+                    );
+                  }}
+                />
+              ))}
+            </div>
+          )
+        ) : loadingSaved ? (
+          <div className="space-y-4 max-w-2xl mx-auto">
+            <Skeleton className="w-full h-32 rounded-xl" />
+          </div>
+        ) : savedPosts.length === 0 ? (
           <EmptyState
             icon={Bookmark}
             title="No saved posts"
             description="Posts you bookmark will be stored here privately for your reference."
           />
+        ) : (
+          <div className="space-y-4 max-w-2xl mx-auto">
+            {savedPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onPostDeleted={(deletedId) => {
+                  setSavedPosts((prev) => prev.filter((p) => p.id !== deletedId));
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
 
