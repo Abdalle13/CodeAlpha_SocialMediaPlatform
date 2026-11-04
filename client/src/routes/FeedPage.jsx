@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Skeleton } from '../components/Skeleton';
 import { RefreshCw, Sparkles } from 'lucide-react';
+import { Wordmark } from '../components/Wordmark';
 import { Link } from 'react-router-dom';
 
 export function FeedPage() {
@@ -36,14 +37,10 @@ export function FeedPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      {/* Post creation box */}
-      <div className="mb-6">
-        <PostComposer onPostCreated={handlePostCreated} />
-      </div>
-
-      {/* Feed Stream */}
-      <div className="flex items-center justify-end mb-3 px-1">
+    <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between mb-6 px-1">
+        <Wordmark size="md" />
         <button
           type="button"
           onClick={refresh}
@@ -54,6 +51,11 @@ export function FeedPage() {
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Latest updates</span>
         </button>
+      </div>
+
+      {/* Post creation box */}
+      <div className="mb-6">
+        <PostComposer onPostCreated={handlePostCreated} />
       </div>
 
       {/* Error Banner */}

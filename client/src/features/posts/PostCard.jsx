@@ -254,7 +254,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }) {
             <MessageCircle className="w-4 h-4" />
             <span>Comments</span>
             {(post.comments?.length || 0) > 0 && (
-              <span className="rounded-full bg-red-500/15 text-red-500 font-semibold px-1.5 py-0.2 text-[10px]">
+              <span className="rounded-full bg-accent-soft text-accent font-semibold px-1.5 py-0.5 text-[10px]">
                 {post.comments.length}
               </span>
             )}

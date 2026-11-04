@@ -46,7 +46,7 @@ export function App() {
       <BrowserRouter>
         <div className="flex min-h-screen flex-col bg-page text-primary selection:bg-accent-soft selection:text-accent">
           <Navbar />
-          <main className="flex-1">
+          <main className="flex-1 pb-28">
             <ErrorBoundary>
               <Routes>
               {/* Home and Core Features */}

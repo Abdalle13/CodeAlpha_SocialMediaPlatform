@@ -155,8 +155,9 @@ export function useMessages(activeConversationId = null) {
     if (activeConversationId) {
       fetchMessages(activeConversationId);
 
+      const channelName = `messages:${activeConversationId}:${Math.random().toString(36).slice(2, 9)}`;
       const channel = supabase
-        .channel(`messages:${activeConversationId}`)
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
