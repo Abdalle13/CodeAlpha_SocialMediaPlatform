@@ -4,6 +4,16 @@ import { authStorage } from '../../lib/authStorage';
 
 const AuthContext = createContext(null);
 
+const KNOWN_USERNAMES = {
+  admin: 'admin@gmail.com',
+  layla_studio: 'layla@veyra.social',
+  zayd_visuals: 'zayd@veyra.social',
+  hana_culinary: 'hana@veyra.social',
+  tariq_tech: 'tariq@veyra.social',
+  amina_wander: 'amina@veyra.social',
+  khalid_fit: 'khalid@veyra.social',
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
@@ -144,8 +154,40 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // 2. Fallback if RPC was not available: check username in profiles table
+    // 2. Try resolving via backend Express API if not yet verified
     if (!identityVerified && !cleanIdentity.includes('@')) {
+      try {
+        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${apiBase}/auth/resolve-identity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identity: cleanIdentity }),
+        });
+        const json = await res.json().catch(() => null);
+        if (json && json.exists && json.email) {
+          resolvedEmail = json.email;
+          identityVerified = true;
+        } else if (json && json.exists === false) {
+          throw new Error(`No account found with username "${cleanIdentity}". Please check your handle or sign up.`);
+        }
+      } catch (apiCatch) {
+        if (apiCatch.message && apiCatch.message.startsWith('No account found')) {
+          throw apiCatch;
+        }
+      }
+    }
+
+    // 3. Fallback to known seed handles dictionary (e.g. admin -> admin@gmail.com)
+    if (!identityVerified && !cleanIdentity.includes('@')) {
+      const lower = cleanIdentity.toLowerCase();
+      if (KNOWN_USERNAMES[lower]) {
+        resolvedEmail = KNOWN_USERNAMES[lower];
+        identityVerified = true;
+      }
+    }
+
+    // 4. If still not an email format, check profile table or ask for full email
+    if (!resolvedEmail.includes('@')) {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('id, status')
@@ -156,12 +198,10 @@ export function AuthProvider({ children }) {
         throw new Error(`No account found with username "${cleanIdentity}". Please check your handle or sign up.`);
       }
 
-      if (profileData.status === 'suspended') {
-        throw new Error('This account has been suspended for violating community guidelines.');
-      }
+      throw new Error(`Please sign in with your full email address for account "${cleanIdentity}".`);
     }
 
-    // 3. Perform Supabase authentication
+    // 5. Perform Supabase authentication
     const { data, error } = await supabase.auth.signInWithPassword({
       email: resolvedEmail,
       password,
@@ -169,15 +209,7 @@ export function AuthProvider({ children }) {
 
     if (error) {
       if (error.message === 'Invalid login credentials') {
-        if (identityVerified) {
-          throw new Error('Incorrect password. Please check your password and try again.');
-        }
-
-        if (cleanIdentity.includes('@')) {
-          throw new Error('Incorrect password, or no account exists with this email.');
-        } else {
-          throw new Error('Incorrect password. Please check your password and try again.');
-        }
+        throw new Error('Incorrect password. Please check your password and try again.');
       }
 
       if (error.message.toLowerCase().includes('email not confirmed')) {

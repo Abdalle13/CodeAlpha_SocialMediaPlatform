@@ -19,41 +19,9 @@ export function Navbar() {
     Boolean(profile?.username) &&
     location.pathname === `/profile/${profile.username}`;
 
-  // If guest on auth routes, keep the screen completely minimal
+  // If not logged in, do not render any bottom dock
   if (!user) {
-    if (
-      location.pathname === '/login' ||
-      location.pathname === '/register' ||
-      location.pathname === '/forgot-password' ||
-      location.pathname === '/reset-password'
-    ) {
-      return null;
-    }
-
-    // Guest on public pages (e.g. explore or welcome)
-    return (
-      <nav
-        className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full bg-[#121214]/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-white/10 px-4 py-2 shadow-2xl text-white"
-        aria-label="Public Navigation Dock"
-      >
-        <Link to="/" className="flex items-center py-1">
-          <Wordmark size="sm" />
-        </Link>
-        <div className="h-4 w-px bg-white/20" />
-        <Link
-          to="/explore"
-          className="text-xs text-zinc-300 hover:text-white transition-colors"
-        >
-          Search & Explore
-        </Link>
-        <Link
-          to="/login"
-          className="rounded-full bg-accent px-3.5 py-1.5 text-xs font-semibold text-white shadow hover:opacity-90 transition-opacity"
-        >
-          Log in
-        </Link>
-      </nav>
-    );
+    return null;
   }
 
   const profileHref = profile?.username ? `/profile/${profile.username}` : '#';
