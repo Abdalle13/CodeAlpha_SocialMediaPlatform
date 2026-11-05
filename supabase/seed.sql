@@ -100,18 +100,18 @@ BEGIN
     (v_p10, v_u2, 'Night rhythm. Rain reflections, neon signage, and the hum of city life after dark.', 'public', 'active', now() - interval '7 days')
   ON CONFLICT (id) DO NOTHING;
 
-  -- 5. Post Media (High-Resolution Unsplash Photography)
-  INSERT INTO public.post_media (post_id, url, position) VALUES
-    (v_p1, 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p2, 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p3, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p4, 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p5, 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p6, 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p7, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p8, 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p9, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1080&q=80', 0),
-    (v_p10, 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1080&q=80', 0)
+  -- 5. Post Media (High-Resolution Unsplash Photography with explicit IDs and file_ids)
+  INSERT INTO public.post_media (id, post_id, url, file_id, position) VALUES
+    ('c1111111-1111-1111-1111-111111111111', v_p1, 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=1080&q=80', 'seed_media_1', 0),
+    ('c2222222-2222-2222-2222-222222222222', v_p2, 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1080&q=80', 'seed_media_2', 0),
+    ('c3333333-3333-3333-3333-333333333333', v_p3, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1080&q=80', 'seed_media_3', 0),
+    ('c4444444-4444-4444-4444-444444444444', v_p4, 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1080&q=80', 'seed_media_4', 0),
+    ('c5555555-5555-5555-5555-555555555555', v_p5, 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1080&q=80', 'seed_media_5', 0),
+    ('c6666666-6666-6666-6666-666666666666', v_p6, 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1080&q=80', 'seed_media_6', 0),
+    ('c7777777-7777-7777-7777-777777777777', v_p7, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1080&q=80', 'seed_media_7', 0),
+    ('c8888888-8888-8888-8888-888888888888', v_p8, 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1080&q=80', 'seed_media_8', 0),
+    ('c9999999-9999-9999-9999-999999999999', v_p9, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1080&q=80', 'seed_media_9', 0),
+    ('caaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', v_p10, 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1080&q=80', 'seed_media_10', 0)
   ON CONFLICT (id) DO NOTHING;
 
   -- 6. Likes on Posts
@@ -137,28 +137,32 @@ BEGIN
     END LOOP;
   END IF;
 
-  -- 7. Comments on Posts
-  INSERT INTO public.comments (post_id, author_id, body) VALUES
-    (v_p1, v_u1, 'That color is stunning! Fresh lime zest makes all the difference.'),
-    (v_p1, v_u5, 'Saving this recipe for tomorrow morning, looks super refreshing!'),
-    (v_p2, v_u4, 'Love the brutalist lines here. What lens did you shoot this with?'),
-    (v_p2, v_u2, 'Shadow play is perfection Layla!'),
-    (v_p3, v_u1, 'The warmth in this frame is pure magic Zayd.'),
-    (v_p3, v_u5, 'Brings back so many fond memories of evening markets.'),
-    (v_p4, v_u2, 'Clean desk setup! Wishing you high velocity on the release.'),
-    (v_p5, v_u3, 'Take me there! That water is crystal clear.'),
-    (v_p6, v_u4, 'Consistency over everything! Keep crushing it Khalid.'),
-    (v_p7, v_u1, 'Nature really is the greatest palette.'),
-    (v_p9, v_u2, 'The scale of those mountain peaks is breathtaking.')
-  ON CONFLICT DO NOTHING;
+  -- 7. Comments on Posts (with explicit IDs)
+  INSERT INTO public.comments (id, post_id, author_id, body) VALUES
+    ('d1111111-1111-1111-1111-111111111111', v_p1, v_u1, 'That color is stunning! Fresh lime zest makes all the difference.'),
+    ('d2222222-2222-2222-2222-222222222222', v_p1, v_u5, 'Saving this recipe for tomorrow morning, looks super refreshing!'),
+    ('d3333333-3333-3333-3333-333333333333', v_p2, v_u4, 'Love the brutalist lines here. What lens did you shoot this with?'),
+    ('d4444444-4444-4444-4444-444444444444', v_p2, v_u2, 'Shadow play is perfection Layla!'),
+    ('d5555555-5555-5555-5555-555555555555', v_p3, v_u1, 'The warmth in this frame is pure magic Zayd.'),
+    ('d6666666-6666-6666-6666-666666666666', v_p3, v_u5, 'Brings back so many fond memories of evening markets.'),
+    ('d7777777-7777-7777-7777-777777777777', v_p4, v_u2, 'Clean desk setup! Wishing you high velocity on the release.'),
+    ('d8888888-8888-8888-8888-888888888888', v_p5, v_u3, 'Take me there! That water is crystal clear.'),
+    ('d9999999-9999-9999-9999-999999999999', v_p6, v_u4, 'Consistency over everything! Keep crushing it Khalid.'),
+    ('daaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', v_p7, v_u1, 'Nature really is the greatest palette.'),
+    ('dbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', v_p9, v_u2, 'The scale of those mountain peaks is breathtaking.')
+  ON CONFLICT (id) DO NOTHING;
 
   -- Add engaging comments on the main user posts if present
   IF v_admin_id IS NOT NULL THEN
     FOR r IN SELECT id FROM public.posts WHERE author_id = v_admin_id LIMIT 2 LOOP
-      INSERT INTO public.comments (post_id, author_id, body) VALUES
-        (r.id, v_u1, 'Fantastic capture! Love the natural colors here.'),
-        (r.id, v_u3, 'This looks wonderful! Great to see your updates on Veyra.')
-      ON CONFLICT DO NOTHING;
+      IF NOT EXISTS (SELECT 1 FROM public.comments WHERE post_id = r.id AND author_id = v_u1) THEN
+        INSERT INTO public.comments (post_id, author_id, body) VALUES
+          (r.id, v_u1, 'Fantastic capture! Love the natural colors here.');
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM public.comments WHERE post_id = r.id AND author_id = v_u3) THEN
+        INSERT INTO public.comments (post_id, author_id, body) VALUES
+          (r.id, v_u3, 'This looks wonderful! Great to see your updates on Veyra.');
+      END IF;
     END LOOP;
   END IF;
 
