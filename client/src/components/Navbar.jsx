@@ -36,7 +36,7 @@ export function Navbar() {
         className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full bg-[#121214]/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-white/10 px-4 py-2 shadow-2xl text-white"
         aria-label="Public Navigation Dock"
       >
-        <Link to="/welcome" className="flex items-center py-1">
+        <Link to="/" className="flex items-center py-1">
           <Wordmark size="sm" />
         </Link>
         <div className="h-4 w-px bg-white/20" />

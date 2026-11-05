@@ -2,21 +2,11 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { LandingPage } from '../routes/LandingPage';
 import { TermsPage } from '../routes/TermsPage';
 import { PrivacyPage } from '../routes/PrivacyPage';
 import { NotFoundPage } from '../routes/NotFoundPage';
 
 describe('Public Pages Rendering', () => {
-  it('renders LandingPage with headline and CTA', () => {
-    render(
-      <MemoryRouter>
-        <LandingPage />
-      </MemoryRouter>
-    );
-    expect(screen.getByRole('heading', { level: 1, name: /share your world/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /create your account/i })).toBeInTheDocument();
-  });
 
   it('renders TermsPage with structured policy sections', () => {
     render(

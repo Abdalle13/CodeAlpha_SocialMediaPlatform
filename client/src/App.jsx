@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { Navbar } from './components/Navbar';
-import { LandingPage } from './routes/LandingPage';
 import { FeedPage } from './routes/FeedPage';
 import { ExplorePage } from './routes/ExplorePage';
 import { SavedPostsPage } from './routes/SavedPostsPage';
@@ -62,7 +61,7 @@ function AppLayout() {
           <Routes>
             {/* Home and Core Features */}
             <Route path="/" element={<HomeRoute />} />
-            <Route path="/welcome" element={<LandingPage />} />
+            <Route path="/welcome" element={<Navigate to="/" replace />} />
             <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/post/:id" element={<PostDetailPage />} />
