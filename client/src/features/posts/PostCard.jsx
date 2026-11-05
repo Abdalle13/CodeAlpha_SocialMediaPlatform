@@ -40,11 +40,11 @@ function formatPostDate(isoString) {
   });
 }
 
-export function PostCard({ post, onPostDeleted, onPostUpdated }) {
+export function PostCard({ post, onPostDeleted, onPostUpdated, initialShowComments = false }) {
   const { user } = useAuth();
   const { isLiked, likeCount, isSaved, toggleLike, toggleSave } = usePostInteractions(post);
 
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(initialShowComments);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeMediaUrl, setActiveMediaUrl] = useState(null);

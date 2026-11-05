@@ -8,6 +8,7 @@ export function useProfile(username) {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followsYou, setFollowsYou] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,25 +58,33 @@ export function useProfile(username) {
 
       // 4. If logged in, check follow relationship and block status
       if (user && user.id !== profileData.id) {
-        const { data: followRelation } = await supabase
-          .from('follows')
-          .select('follower_id')
-          .eq('follower_id', user.id)
-          .eq('following_id', profileData.id)
-          .maybeSingle();
+        const [followRelation, followsYouRelation, blockRelation] = await Promise.all([
+          supabase
+            .from('follows')
+            .select('follower_id')
+            .eq('follower_id', user.id)
+            .eq('following_id', profileData.id)
+            .maybeSingle(),
+          supabase
+            .from('follows')
+            .select('follower_id')
+            .eq('follower_id', profileData.id)
+            .eq('following_id', user.id)
+            .maybeSingle(),
+          supabase
+            .from('blocks')
+            .select('blocker_id')
+            .eq('blocker_id', user.id)
+            .eq('blocked_id', profileData.id)
+            .maybeSingle(),
+        ]);
 
-        setIsFollowing(Boolean(followRelation));
-
-        const { data: blockRelation } = await supabase
-          .from('blocks')
-          .select('blocker_id')
-          .eq('blocker_id', user.id)
-          .eq('blocked_id', profileData.id)
-          .maybeSingle();
-
-        setIsBlocked(Boolean(blockRelation));
+        setIsFollowing(Boolean(followRelation.data));
+        setFollowsYou(Boolean(followsYouRelation.data));
+        setIsBlocked(Boolean(blockRelation.data));
       } else {
         setIsFollowing(false);
+        setFollowsYou(false);
         setIsBlocked(false);
       }
     } catch (err) {
@@ -174,6 +183,7 @@ export function useProfile(username) {
     followerCount,
     followingCount,
     isFollowing,
+    followsYou,
     isBlocked,
     isLoading,
     error,

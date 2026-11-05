@@ -10,6 +10,7 @@ import {
   Bookmark,
   Check,
   UserX,
+  UserPlus,
   Flag,
   Settings,
   LogOut,
@@ -38,6 +39,7 @@ export function ProfilePage() {
     followerCount,
     followingCount,
     isFollowing,
+    followsYou,
     isBlocked,
     isLoading,
     error,
@@ -322,6 +324,11 @@ export function ProfilePage() {
                         <Check className="w-3.5 h-3.5" />
                         <span>Following</span>
                       </span>
+                    ) : followsYou ? (
+                      <span className="flex items-center gap-1.5">
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Follow back</span>
+                      </span>
                     ) : (
                       'Follow'
                     )}
@@ -387,9 +394,16 @@ export function ProfilePage() {
               <h1 className="text-xl sm:text-2xl font-serif font-medium text-primary leading-tight">
                 {profile.display_name}
               </h1>
-              <p className="text-sm text-secondary font-mono">
-                @{profile.username}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-sm text-secondary font-mono">
+                  @{profile.username}
+                </p>
+                {followsYou && !isOwnProfile && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-surface-raised border border-border text-secondary">
+                    Follows you
+                  </span>
+                )}
+              </div>
             </div>
 
             {profile.bio && (

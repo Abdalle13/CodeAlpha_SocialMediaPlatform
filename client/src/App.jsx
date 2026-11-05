@@ -15,6 +15,7 @@ import { RegisterPage } from './routes/RegisterPage';
 import { ForgotPasswordPage } from './routes/ForgotPasswordPage';
 import { ResetPasswordPage } from './routes/ResetPasswordPage';
 import { ProfilePage } from './routes/ProfilePage';
+import { PostDetailPage } from './routes/PostDetailPage';
 import { SettingsProfilePage } from './routes/SettingsProfilePage';
 import { OnboardingProfilePage } from './routes/OnboardingProfilePage';
 import { AdminDashboardPage } from './routes/AdminDashboardPage';
@@ -55,6 +56,7 @@ export function App() {
               <Route path="/welcome" element={<LandingPage />} />
               <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
               <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/post/:id" element={<PostDetailPage />} />
               <Route path="/saved" element={<ProtectedRoute><SavedPostsPage /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />

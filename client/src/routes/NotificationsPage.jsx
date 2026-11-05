@@ -289,7 +289,7 @@ export function NotificationsPage() {
               </div>
             );
 
-            return link && !isFollowNotif ? (
+            return link ? (
               <Link key={item.id} to={link} className="block focus-visible:outline-accent rounded-xl">
                 {cardContent}
               </Link>
