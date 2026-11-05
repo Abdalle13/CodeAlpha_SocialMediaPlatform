@@ -98,29 +98,93 @@ export function AuthProvider({ children }) {
       throw new Error('Supabase project credentials are not configured in environment variables.');
     }
 
+    const cleanIdentity = (identity || '').trim();
+    if (!cleanIdentity) {
+      throw new Error('Please enter your email address or username.');
+    }
+    if (!password) {
+      throw new Error('Please enter your password.');
+    }
+
     authStorage.setRememberPreference(rememberMe);
 
-    let email = identity;
-    // If user provided a username without '@', look up corresponding email via secure RPC or match
-    if (!identity.includes('@')) {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', identity.toLowerCase())
-        .single();
+    let resolvedEmail = cleanIdentity;
+    let identityVerified = false;
 
-      if (!profileData) {
-        throw new Error('Invalid email, username, or password.');
+    // 1. Try resolving identity via secure database RPC
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('resolve_login_identity', {
+        p_identity: cleanIdentity,
+      });
+
+      if (!rpcErr && rpcRes) {
+        if (!rpcRes.exists) {
+          if (cleanIdentity.includes('@')) {
+            throw new Error('No account found with this email address. Please check your spelling or sign up.');
+          } else {
+            throw new Error(`No account found with username "${cleanIdentity}". Please check your handle or sign up.`);
+          }
+        }
+
+        if (rpcRes.is_suspended) {
+          throw new Error('This account has been suspended for violating community guidelines.');
+        }
+
+        if (rpcRes.email) {
+          resolvedEmail = rpcRes.email;
+          identityVerified = true;
+        }
+      }
+    } catch (rpcCatch) {
+      if (
+        rpcCatch.message &&
+        (rpcCatch.message.startsWith('No account found') || rpcCatch.message.startsWith('This account'))
+      ) {
+        throw rpcCatch;
       }
     }
 
+    // 2. Fallback if RPC was not available: check username in profiles table
+    if (!identityVerified && !cleanIdentity.includes('@')) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, status')
+        .eq('username', cleanIdentity.toLowerCase())
+        .maybeSingle();
+
+      if (!profileData) {
+        throw new Error(`No account found with username "${cleanIdentity}". Please check your handle or sign up.`);
+      }
+
+      if (profileData.status === 'suspended') {
+        throw new Error('This account has been suspended for violating community guidelines.');
+      }
+    }
+
+    // 3. Perform Supabase authentication
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: resolvedEmail,
       password,
     });
 
     if (error) {
-      throw new Error(error.message === 'Invalid login credentials' ? 'Invalid email, username, or password.' : error.message);
+      if (error.message === 'Invalid login credentials') {
+        if (identityVerified) {
+          throw new Error('Incorrect password. Please check your password and try again.');
+        }
+
+        if (cleanIdentity.includes('@')) {
+          throw new Error('Incorrect password, or no account exists with this email.');
+        } else {
+          throw new Error('Incorrect password. Please check your password and try again.');
+        }
+      }
+
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        throw new Error('Please confirm your email address before signing in.');
+      }
+
+      throw new Error(error.message);
     }
 
     return data;

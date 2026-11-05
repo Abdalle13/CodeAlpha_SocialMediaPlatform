@@ -124,8 +124,8 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-7 bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm">
+    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4 py-8 sm:px-6">
+      <div className="w-full max-w-lg space-y-6 bg-surface p-7 sm:p-10 rounded-3xl border border-border shadow-xl">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-block focus-visible:outline-accent rounded">
             <Wordmark size="lg" />
