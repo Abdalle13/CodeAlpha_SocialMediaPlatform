@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useNotifications } from '../features/notifications/useNotifications';
+import { useAuth } from '../features/auth/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
@@ -12,6 +14,7 @@ import {
   UserPlus,
   Mail,
   CheckCheck,
+  UserCheck,
 } from 'lucide-react';
 
 function getNotificationContent(item) {
@@ -106,6 +109,71 @@ function formatNotificationTime(isoString) {
   }
 }
 
+// Follow-back button for follow notifications
+function FollowBackButton({ actorId }) {
+  const { user } = useAuth();
+  const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'following' | 'error'
+
+  useEffect(() => {
+    if (!user || !actorId) return;
+    // Check if already following
+    supabase
+      .from('follows')
+      .select('id')
+      .eq('follower_id', user.id)
+      .eq('following_id', actorId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setStatus('following');
+      });
+  }, [user, actorId]);
+
+  const handleFollowBack = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user || status === 'following' || status === 'loading') return;
+
+    setStatus('loading');
+    try {
+      const { error } = await supabase
+        .from('follows')
+        .insert({ follower_id: user.id, following_id: actorId });
+
+      if (error) throw error;
+      setStatus('following');
+    } catch {
+      setStatus('idle');
+    }
+  };
+
+  if (status === 'following') {
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-page border border-border text-[11px] font-medium text-secondary shrink-0">
+        <UserCheck className="w-3 h-3" />
+        Following
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleFollowBack}
+      disabled={status === 'loading'}
+      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent text-white text-[11px] font-semibold shrink-0 hover:bg-accent/90 transition-colors disabled:opacity-60"
+    >
+      {status === 'loading' ? (
+        <span>...</span>
+      ) : (
+        <>
+          <UserPlus className="w-3 h-3" />
+          Follow back
+        </>
+      )}
+    </button>
+  );
+}
+
 export function NotificationsPage() {
   const {
     notifications,
@@ -174,6 +242,7 @@ export function NotificationsPage() {
             const text = itemContent.text || 'Notification';
             const link = itemContent.link || null;
             const isUnread = !item.read_at;
+            const isFollowNotif = item.type === 'follow';
 
             const cardContent = (
               <div
@@ -206,7 +275,12 @@ export function NotificationsPage() {
                   </p>
                 </div>
 
-                {isUnread && (
+                {/* Follow-back button for follow notifications */}
+                {isFollowNotif && item.actor?.id && (
+                  <FollowBackButton actorId={item.actor.id} />
+                )}
+
+                {isUnread && !isFollowNotif && (
                   <span
                     className="h-2 w-2 rounded-full bg-accent shrink-0"
                     title="Unread notification"
@@ -215,7 +289,7 @@ export function NotificationsPage() {
               </div>
             );
 
-            return link ? (
+            return link && !isFollowNotif ? (
               <Link key={item.id} to={link} className="block focus-visible:outline-accent rounded-xl">
                 {cardContent}
               </Link>
@@ -228,4 +302,3 @@ export function NotificationsPage() {
     </div>
   );
 }
-

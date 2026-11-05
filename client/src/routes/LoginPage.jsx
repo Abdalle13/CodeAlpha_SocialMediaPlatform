@@ -71,7 +71,7 @@ export function LoginPage() {
             type="text"
             required
             autoComplete="username"
-            placeholder="elena or elena@example.com"
+            placeholder="Username or email address"
             value={identity}
             onChange={(e) => setIdentity(e.target.value)}
           />

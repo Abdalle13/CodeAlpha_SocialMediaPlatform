@@ -8,6 +8,7 @@ import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Toast } from '../components/Toast';
+import { ImageCropperModal } from '../components/ImageCropperModal';
 
 export function SettingsProfilePage() {
   const { user, profile, isLoading: authLoading } = useAuth();
@@ -34,6 +35,14 @@ export function SettingsProfilePage() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+
+  const [cropperModal, setCropperModal] = useState({
+    isOpen: false,
+    imageSrc: null,
+    aspectRatio: '1:1',
+    target: 'avatar',
+    title: 'Crop Image',
+  });
 
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
@@ -87,21 +96,49 @@ export function SettingsProfilePage() {
     }
   };
 
-  const handleAvatarChange = async (e) => {
+  const handleFileSelect = (e, target) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingAvatar(true);
-    try {
-      const uploadResult = await uploadToImageKit(file, { folder: '/veyra/avatars' });
-      setAvatarUrl(uploadResult.url);
-      setAvatarFileId(uploadResult.fileId);
-      showToast('Avatar uploaded. Remember to save changes.', 'success');
-    } catch (err) {
-      showToast(err.message || 'Avatar upload failed.', 'error');
-    } finally {
-      setUploadingAvatar(false);
-      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropperModal({
+        isOpen: true,
+        imageSrc: reader.result,
+        aspectRatio: target === 'avatar' ? '1:1' : '3:1',
+        target,
+        title: target === 'avatar' ? 'Crop Profile Avatar' : 'Crop Cover Banner',
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleCropComplete = async (croppedFile) => {
+    if (cropperModal.target === 'avatar') {
+      setUploadingAvatar(true);
+      try {
+        const uploadResult = await uploadToImageKit(croppedFile, { folder: '/veyra/avatars' });
+        setAvatarUrl(uploadResult.url);
+        setAvatarFileId(uploadResult.fileId);
+        showToast('Avatar cropped and uploaded. Click Save changes to persist.', 'success');
+      } catch (err) {
+        showToast(err.message || 'Avatar upload failed.', 'error');
+      } finally {
+        setUploadingAvatar(false);
+      }
+    } else {
+      setUploadingCover(true);
+      try {
+        const uploadResult = await uploadToImageKit(croppedFile, { folder: '/veyra/covers' });
+        setCoverUrl(uploadResult.url);
+        setCoverFileId(uploadResult.fileId);
+        showToast('Cover cropped and uploaded. Click Save changes to persist.', 'success');
+      } catch (err) {
+        showToast(err.message || 'Cover photo upload failed.', 'error');
+      } finally {
+        setUploadingCover(false);
+      }
     }
   };
 
@@ -116,24 +153,6 @@ export function SettingsProfilePage() {
     setAvatarUrl('');
     setAvatarFileId('');
     showToast('Avatar removed. Click save to persist.', 'info');
-  };
-
-  const handleCoverChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingCover(true);
-    try {
-      const uploadResult = await uploadToImageKit(file, { folder: '/veyra/covers' });
-      setCoverUrl(uploadResult.url);
-      setCoverFileId(uploadResult.fileId);
-      showToast('Cover photo uploaded. Remember to save changes.', 'success');
-    } catch (err) {
-      showToast(err.message || 'Cover photo upload failed.', 'error');
-    } finally {
-      setUploadingCover(false);
-      if (coverInputRef.current) coverInputRef.current.value = '';
-    }
   };
 
   const handleRemoveCover = async () => {
@@ -314,7 +333,7 @@ export function SettingsProfilePage() {
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="hidden"
-            onChange={handleCoverChange}
+            onChange={(e) => handleFileSelect(e, 'cover')}
           />
         </div>
 
@@ -362,7 +381,7 @@ export function SettingsProfilePage() {
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="hidden"
-            onChange={handleAvatarChange}
+            onChange={(e) => handleFileSelect(e, 'avatar')}
           />
         </div>
 
@@ -516,6 +535,15 @@ export function SettingsProfilePage() {
           </div>
         </div>
       )}
+      {/* Cropper Modal for Avatar and Cover */}
+      <ImageCropperModal
+        isOpen={cropperModal.isOpen}
+        onClose={() => setCropperModal((prev) => ({ ...prev, isOpen: false, imageSrc: null }))}
+        imageSrc={cropperModal.imageSrc}
+        aspectRatio={cropperModal.aspectRatio}
+        title={cropperModal.title}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }

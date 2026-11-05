@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useMessages } from '../features/messages/useMessages';
 import { useAuth } from '../features/auth/AuthContext';
 import { supabase } from '../lib/supabaseClient';
@@ -13,7 +13,6 @@ import {
   Plus,
   ArrowLeft,
   Search,
-  Check,
 } from 'lucide-react';
 
 function formatMessageTime(isoString) {
@@ -30,6 +29,7 @@ export function MessagesPage() {
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [userSearchResults, setUserSearchResults] = useState([]);
   const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [mutualFollows, setMutualFollows] = useState([]);
 
   const {
     conversations,
@@ -55,7 +55,52 @@ export function MessagesPage() {
     }
   }, [conversations, selectedConvoId]);
 
+  // Fetch mutual follows to pre-populate contacts
+  const fetchMutualFollows = useCallback(async () => {
+    if (!user) return;
+    try {
+      // People I follow
+      const { data: iFollow } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', user.id);
+
+      if (!iFollow || iFollow.length === 0) return;
+
+      const iFollowIds = iFollow.map((f) => f.following_id);
+
+      // Among those, who follows me back (mutual)
+      const { data: mutuals } = await supabase
+        .from('follows')
+        .select(`
+          follower_id,
+          profile:profiles!follower_id (
+            id,
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('following_id', user.id)
+        .in('follower_id', iFollowIds);
+
+      setMutualFollows((mutuals || []).map((m) => m.profile).filter(Boolean));
+    } catch (err) {
+      console.error('Error fetching mutual follows:', err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchMutualFollows();
+  }, [fetchMutualFollows]);
+
   const activeConversation = conversations.find((c) => c.id === selectedConvoId);
+
+  // Build combined sidebar list: real convos + mutual follows not yet in a convo
+  const convoUserIds = new Set(
+    conversations.map((c) => c.otherUser?.id).filter(Boolean)
+  );
+  const mutualContactsNotInConvo = mutualFollows.filter((m) => !convoUserIds.has(m.id));
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -108,10 +153,22 @@ export function MessagesPage() {
     }
   };
 
+  // Start or open chat with a mutual follow contact
+  const handleOpenContactChat = async (contact) => {
+    try {
+      const convoId = await startConversation(contact.id);
+      setSelectedConvoId(convoId);
+    } catch (err) {
+      console.error('Could not start conversation:', err);
+    }
+  };
+
+  const hasAnything = conversations.length > 0 || mutualContactsNotInConvo.length > 0;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex-1 rounded-2xl border border-border bg-surface shadow-sm overflow-hidden flex">
-        {/* Left Pane: Conversations List */}
+        {/* Left Pane: Conversations + Contacts */}
         <div
           className={`w-full md:w-80 lg:w-96 border-r border-border flex flex-col ${
             selectedConvoId ? 'hidden md:flex' : 'flex'
@@ -131,7 +188,7 @@ export function MessagesPage() {
             </Button>
           </div>
 
-          {/* Conversations list */}
+          {/* Conversations + Mutual contacts list */}
           <div className="flex-1 overflow-y-auto divide-y divide-border/60">
             {isLoadingConversations ? (
               <div className="p-4 space-y-3">
@@ -145,12 +202,12 @@ export function MessagesPage() {
                   </div>
                 ))}
               </div>
-            ) : conversations.length === 0 ? (
+            ) : !hasAnything ? (
               <div className="p-6 text-center">
                 <EmptyState
                   icon={MessageSquare}
-                  title="No conversations"
-                  description="Start a private conversation with any member on Veyra."
+                  title="No conversations yet"
+                  description="Start a private chat with any Veyra member using the button above."
                   action={
                     <Button
                       variant="primary"
@@ -163,52 +220,88 @@ export function MessagesPage() {
                 />
               </div>
             ) : (
-              conversations.map((convo) => {
-                const other = convo.otherUser;
-                const isSelected = convo.id === selectedConvoId;
+              <>
+                {/* Real conversations */}
+                {conversations.map((convo) => {
+                  const other = convo.otherUser;
+                  const isSelected = convo.id === selectedConvoId;
 
-                return (
-                  <button
-                    key={convo.id}
-                    type="button"
-                    onClick={() => setSelectedConvoId(convo.id)}
-                    className={`w-full p-3.5 flex items-center gap-3 text-left transition-colors ${
-                      isSelected
-                        ? 'bg-accent-soft/40 dark:bg-accent-soft/10'
-                        : 'hover:bg-page/50'
-                    }`}
-                  >
-                    <div className="relative shrink-0">
-                      <Avatar
-                        src={other?.avatar_url}
-                        name={other?.display_name || other?.username || 'Member'}
-                        size="md"
-                      />
-                      {convo.isUnread && (
-                        <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-surface" />
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="font-semibold text-xs text-primary truncate">
-                          {other?.display_name || 'Veyra Member'}
-                        </span>
-                        {convo.lastMessage && (
-                          <span className="text-[10px] text-secondary shrink-0">
-                            {formatMessageTime(convo.lastMessage.created_at)}
-                          </span>
+                  return (
+                    <button
+                      key={convo.id}
+                      type="button"
+                      onClick={() => setSelectedConvoId(convo.id)}
+                      className={`w-full p-3.5 flex items-center gap-3 text-left transition-colors ${
+                        isSelected
+                          ? 'bg-accent-soft/40 dark:bg-accent-soft/10'
+                          : 'hover:bg-page/50'
+                      }`}
+                    >
+                      <div className="relative shrink-0">
+                        <Avatar
+                          src={other?.avatar_url}
+                          name={other?.display_name || other?.username || 'Member'}
+                          size="md"
+                        />
+                        {convo.isUnread && (
+                          <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-surface" />
                         )}
                       </div>
-                      <p className="text-xs text-secondary truncate mt-0.5">
-                        {convo.lastMessage
-                          ? convo.lastMessage.body
-                          : 'Conversation started'}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-semibold text-xs text-primary truncate">
+                            {other?.display_name || 'Veyra Member'}
+                          </span>
+                          {convo.lastMessage && (
+                            <span className="text-[10px] text-secondary shrink-0">
+                              {formatMessageTime(convo.lastMessage.created_at)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-secondary truncate mt-0.5">
+                          {convo.lastMessage
+                            ? convo.lastMessage.body
+                            : 'Say hello!'}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+
+                {/* Mutual follows without a conversation yet */}
+                {mutualContactsNotInConvo.length > 0 && (
+                  <>
+                    {conversations.length > 0 && (
+                      <div className="px-3.5 py-2 text-[10px] font-semibold uppercase tracking-wider text-secondary bg-page/40">
+                        People you follow
+                      </div>
+                    )}
+                    {mutualContactsNotInConvo.map((contact) => (
+                      <button
+                        key={contact.id}
+                        type="button"
+                        onClick={() => handleOpenContactChat(contact)}
+                        className="w-full p-3.5 flex items-center gap-3 text-left hover:bg-page/50 transition-colors"
+                      >
+                        <Avatar
+                          src={contact.avatar_url}
+                          name={contact.display_name || contact.username || 'Member'}
+                          size="md"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold text-xs text-primary truncate block">
+                            {contact.display_name || contact.username}
+                          </span>
+                          <p className="text-xs text-secondary truncate mt-0.5">
+                            @{contact.username} &middot; Tap to message
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -259,7 +352,7 @@ export function MessagesPage() {
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="text-center py-12 text-xs text-secondary">
-                    Send a message to say hello.
+                    No messages yet. Send a message to say hello!
                   </div>
                 ) : (
                   messages.map((msg) => {
@@ -319,7 +412,7 @@ export function MessagesPage() {
               <EmptyState
                 icon={MessageSquare}
                 title="Select a conversation"
-                description="Choose an existing discussion from the sidebar or start a new conversation."
+                description="Choose a contact from the sidebar or start a new conversation."
               />
             </div>
           )}
@@ -344,7 +437,7 @@ export function MessagesPage() {
               type="text"
               value={userSearchQuery}
               onChange={(e) => handleSearchUsers(e.target.value)}
-              placeholder="Search members..."
+              placeholder="Search by name or @username..."
               autoFocus
               className="w-full rounded-xl border border-border bg-page pl-10 pr-3.5 py-2 text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
             />
@@ -359,6 +452,34 @@ export function MessagesPage() {
               <div className="py-4 text-center text-xs text-secondary">
                 No members found matching that search.
               </div>
+            ) : userSearchResults.length === 0 && !userSearchQuery && mutualFollows.length > 0 ? (
+              <>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-secondary px-2 pb-2">
+                  People you follow
+                </p>
+                {mutualFollows.map((contact) => (
+                  <button
+                    key={contact.id}
+                    type="button"
+                    onClick={() => handleStartChatWithUser(contact)}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-page transition-colors text-left"
+                  >
+                    <Avatar
+                      src={contact.avatar_url}
+                      name={contact.display_name || contact.username}
+                      size="sm"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-xs text-primary truncate">
+                        {contact.display_name}
+                      </p>
+                      <p className="text-[11px] text-secondary truncate">
+                        @{contact.username}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </>
             ) : (
               userSearchResults.map((foundUser) => (
                 <button
@@ -389,4 +510,3 @@ export function MessagesPage() {
     </div>
   );
 }
-

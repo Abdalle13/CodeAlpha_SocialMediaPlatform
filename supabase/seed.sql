@@ -164,6 +164,20 @@ BEGIN
           (r.id, v_u3, 'This looks wonderful! Great to see your updates on Veyra.');
       END IF;
     END LOOP;
+
+    -- 8. Notifications for Main User (Follows, Likes, Comments)
+    INSERT INTO public.notifications (recipient_id, actor_id, type, target_type, target_id, created_at) VALUES
+      (v_admin_id, v_u1, 'follow', 'profile', v_u1, now() - interval '2 hours'),
+      (v_admin_id, v_u2, 'follow', 'profile', v_u2, now() - interval '5 hours'),
+      (v_admin_id, v_u3, 'follow', 'profile', v_u3, now() - interval '1 day'),
+      (v_admin_id, v_u5, 'follow', 'profile', v_u5, now() - interval '2 days');
+
+    FOR r IN SELECT id FROM public.posts WHERE author_id = v_admin_id LIMIT 1 LOOP
+      INSERT INTO public.notifications (recipient_id, actor_id, type, target_type, target_id, created_at) VALUES
+        (v_admin_id, v_u1, 'like', 'post', r.id, now() - interval '1 hour'),
+        (v_admin_id, v_u3, 'like', 'post', r.id, now() - interval '3 hours'),
+        (v_admin_id, v_u1, 'comment', 'post', r.id, now() - interval '30 minutes');
+    END LOOP;
   END IF;
 
 END $$;

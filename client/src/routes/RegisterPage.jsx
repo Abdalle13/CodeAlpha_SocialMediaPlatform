@@ -114,7 +114,7 @@ export function RegisterPage() {
       if (data?.user && !data.session) {
         setSuccessNotice('Account created! Please check your email to confirm your account before signing in.');
       } else {
-        navigate('/', { replace: true });
+        navigate('/onboarding', { replace: true });
       }
     } catch (err) {
       setErrorMessage(err.message || 'Unable to create account. Please try again.');
@@ -164,7 +164,7 @@ export function RegisterPage() {
             name="displayName"
             type="text"
             required
-            placeholder="Elena Archer"
+            placeholder="e.g. Abdullahi Mohamed"
             value={formData.displayName}
             onChange={handleChange}
           />
@@ -174,7 +174,7 @@ export function RegisterPage() {
             name="username"
             type="text"
             required
-            placeholder="elena"
+            placeholder="e.g. abdalle_13"
             hint="Letters, numbers, or underscores (spaces auto-convert to _)"
             value={formData.username}
             onChange={handleChange}
@@ -186,7 +186,7 @@ export function RegisterPage() {
             type="email"
             required
             autoComplete="email"
-            placeholder="elena@example.com"
+            placeholder="e.g. yourname@gmail.com"
             value={formData.email}
             onChange={handleChange}
           />
