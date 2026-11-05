@@ -20,3 +20,4 @@ DELETE FROM auth.users WHERE lower(email) = 'admin@gmail.com';
 DELETE FROM public.profiles WHERE id = '00000000-0000-0000-0000-000000000001';
 
 SELECT 'Cleanup done. Now go to Supabase Dashboard > Authentication > Users > Add User.' AS status;
+

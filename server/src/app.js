@@ -20,8 +20,14 @@ export function createApp() {
   // Strict CORS configuration
   app.use(cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (such as mobile apps or curl) or if origin is in allowlist
-      if (!origin || config.allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (such as mobile apps or curl), wildcard, Vercel deployments, or allowedOrigins
+      if (
+        !origin ||
+        config.allowedOrigins.includes('*') ||
+        config.allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('localhost')
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked for origin: ${origin}`));
@@ -46,11 +52,16 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-  // Routes
+  // Routes - mount under /api and root to support both standalone Express and Vercel serverless routing
   app.use('/api', healthRouter);
   app.use('/api', mediaRouter);
   app.use('/api', moderationRouter);
   app.use('/api', authRouter);
+
+  app.use('/', healthRouter);
+  app.use('/', mediaRouter);
+  app.use('/', moderationRouter);
+  app.use('/', authRouter);
 
   // 404 & Global Error Handlers
   app.use(notFoundHandler);

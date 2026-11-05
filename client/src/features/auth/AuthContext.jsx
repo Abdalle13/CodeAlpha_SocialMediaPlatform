@@ -157,7 +157,7 @@ export function AuthProvider({ children }) {
     // 2. Try resolving via backend Express API if not yet verified
     if (!identityVerified && !cleanIdentity.includes('@')) {
       try {
-        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+        const apiBase = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
         const res = await fetch(`${apiBase}/auth/resolve-identity`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
