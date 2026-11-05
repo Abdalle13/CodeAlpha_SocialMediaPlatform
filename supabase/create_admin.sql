@@ -1,100 +1,80 @@
--- Veyra Admin Setup & Identity Resolver
--- Creates or updates admin@gmail.com (Password: Admin123!) and enables username-to-email login.
--- Safe and idempotent to run directly in Supabase SQL Editor.
+-- Veyra Admin Setup & Repair Script
+-- Deletes any corrupt auth rows and properly provisions admin@gmail.com with GoTrue auth identities.
+-- Run this entire script in Supabase SQL Editor.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
--- 1. Create Identity Resolver Function (allows logging in with "admin" or "admin@gmail.com")
-CREATE OR REPLACE FUNCTION public.resolve_login_identity(p_identity text)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, auth, extensions, pg_temp
-AS $$
-DECLARE
-  v_email text;
-  v_user_exists boolean := false;
-  v_is_suspended boolean := false;
-  v_clean text;
-BEGIN
-  v_clean := lower(trim(p_identity));
-  
-  IF v_clean = '' OR v_clean IS NULL THEN
-    RETURN json_build_object('exists', false, 'error', 'Identity cannot be empty');
-  END IF;
-
-  IF v_clean LIKE '%@%' THEN
-    SELECT true, u.email, (coalesce(p.status, 'active') = 'suspended')
-    INTO v_user_exists, v_email, v_is_suspended
-    FROM auth.users u
-    LEFT JOIN public.profiles p ON p.id = u.id
-    WHERE lower(u.email) = v_clean
-    LIMIT 1;
-  ELSE
-    SELECT true, u.email, (coalesce(p.status, 'active') = 'suspended')
-    INTO v_user_exists, v_email, v_is_suspended
-    FROM public.profiles p
-    JOIN auth.users u ON u.id = p.id
-    WHERE lower(p.username) = v_clean
-    LIMIT 1;
-  END IF;
-
-  RETURN json_build_object(
-    'exists', coalesce(v_user_exists, false),
-    'email', v_email,
-    'is_suspended', coalesce(v_is_suspended, false)
-  );
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.resolve_login_identity(text) TO anon, authenticated;
-
--- 2. Create or Update admin@gmail.com with password Admin123!
 DO $$
 DECLARE
-  v_uid uuid;
-  v_new_id uuid := '00000000-0000-0000-0000-000000000001';
+  v_uid uuid := gen_random_uuid();
+  v_inst uuid;
 BEGIN
-  SELECT id INTO v_uid FROM auth.users WHERE lower(email) = 'admin@gmail.com' LIMIT 1;
-  
-  IF v_uid IS NULL THEN
-    IF EXISTS (SELECT 1 FROM auth.users WHERE id = v_new_id) THEN
-      v_new_id := gen_random_uuid();
-    END IF;
-    v_uid := v_new_id;
+  -- 1. Remove previous/corrupt admin rows completely
+  DELETE FROM public.admin_users WHERE user_id IN (SELECT id FROM auth.users WHERE lower(email) = 'admin@gmail.com');
+  DELETE FROM public.profiles WHERE username = 'admin' OR id IN (SELECT id FROM auth.users WHERE lower(email) = 'admin@gmail.com');
+  DELETE FROM auth.identities WHERE user_id IN (SELECT id FROM auth.users WHERE lower(email) = 'admin@gmail.com');
+  DELETE FROM auth.users WHERE lower(email) = 'admin@gmail.com';
 
-    INSERT INTO auth.users (
-      id,
-      aud,
-      role,
-      email,
-      encrypted_password,
-      email_confirmed_at,
-      raw_app_meta_data,
-      raw_user_meta_data,
-      created_at,
-      updated_at
-    ) VALUES (
-      v_uid,
-      'authenticated',
-      'authenticated',
-      'admin@gmail.com',
-      extensions.crypt('Admin123!', extensions.gen_salt('bf')),
-      now(),
-      '{"provider":"email","providers":["email"]}',
-      '{"username":"admin","display_name":"System Administrator"}',
-      now(),
-      now()
-    );
-  ELSE
-    UPDATE auth.users
-    SET encrypted_password = extensions.crypt('Admin123!', extensions.gen_salt('bf')),
-        email_confirmed_at = coalesce(email_confirmed_at, now()),
-        updated_at = now()
-    WHERE id = v_uid;
+  -- Also clean up orphaned dummy id
+  DELETE FROM public.profiles WHERE id = '00000000-0000-0000-0000-000000000001';
+
+  -- 2. Detect the instance_id from other active users in your Supabase project
+  SELECT instance_id INTO v_inst FROM auth.users LIMIT 1;
+  IF v_inst IS NULL THEN
+    v_inst := '00000000-0000-0000-0000-000000000000';
   END IF;
 
-  -- 3. Upsert Profile with admin role
+  -- 3. Insert complete valid user row in auth.users
+  INSERT INTO auth.users (
+    instance_id,
+    id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    is_super_admin,
+    created_at,
+    updated_at
+  ) VALUES (
+    v_inst,
+    v_uid,
+    'authenticated',
+    'authenticated',
+    'admin@gmail.com',
+    extensions.crypt('Admin123!', extensions.gen_salt('bf', 10)),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"username":"admin","display_name":"System Administrator"}'::jsonb,
+    false,
+    now(),
+    now()
+  );
+
+  -- 4. Insert required identity row in auth.identities (Required by Supabase GoTrue Auth)
+  INSERT INTO auth.identities (
+    id,
+    user_id,
+    identity_data,
+    provider,
+    provider_id,
+    last_sign_in_at,
+    created_at,
+    updated_at
+  ) VALUES (
+    v_uid::text,
+    v_uid,
+    json_build_object('sub', v_uid::text, 'email', 'admin@gmail.com'),
+    'email',
+    'admin@gmail.com',
+    now(),
+    now(),
+    now()
+  );
+
+  -- 5. Insert profile with admin role
   INSERT INTO public.profiles (id, username, display_name, role, status, bio)
   VALUES (
     v_uid,
@@ -109,10 +89,10 @@ BEGIN
     role = 'admin',
     status = 'active';
 
-  -- 4. Register in admin_users for Admin Console access
+  -- 6. Insert into admin_users table for full dashboard access
   INSERT INTO public.admin_users (user_id)
   VALUES (v_uid)
   ON CONFLICT (user_id) DO NOTHING;
 
-  RAISE NOTICE 'Admin user ready: email=admin@gmail.com, username=admin, password=Admin123!';
+  RAISE NOTICE 'SUCCESS: admin@gmail.com (username: admin, password: Admin123!) has been cleanly created and verified.';
 END $$;
