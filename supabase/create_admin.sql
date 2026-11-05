@@ -64,7 +64,7 @@ BEGIN
     created_at,
     updated_at
   ) VALUES (
-    v_uid::text,
+    v_uid,
     v_uid,
     json_build_object('sub', v_uid::text, 'email', 'admin@gmail.com'),
     'email',
