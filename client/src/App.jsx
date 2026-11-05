@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { Navbar } from './components/Navbar';
 import { LandingPage } from './routes/LandingPage';
@@ -42,47 +42,64 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" replace />;
 }
 
+function AppLayout() {
+  const location = useLocation();
+  const { user } = useAuth();
+
+  const isAuthPage =
+    !user &&
+    (location.pathname === '/' ||
+      location.pathname === '/login' ||
+      location.pathname === '/register' ||
+      location.pathname === '/forgot-password' ||
+      location.pathname === '/reset-password');
+
+  return (
+    <div className="flex min-h-screen flex-col bg-page text-primary selection:bg-accent-soft selection:text-accent">
+      <Navbar />
+      <main className={`flex-1 flex flex-col ${isAuthPage ? '' : 'pb-28'}`}>
+        <ErrorBoundary>
+          <Routes>
+            {/* Home and Core Features */}
+            <Route path="/" element={<HomeRoute />} />
+            <Route path="/welcome" element={<LandingPage />} />
+            <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/post/:id" element={<PostDetailPage />} />
+            <Route path="/saved" element={<ProtectedRoute><SavedPostsPage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+
+            {/* Public Informational */}
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+
+            {/* Authentication */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+            {/* Profile, Settings, and Admin */}
+            <Route path="/onboarding" element={<ProtectedRoute><OnboardingProfilePage /></ProtectedRoute>} />
+            <Route path="/profile/:username" element={<ProfilePage />} />
+            <Route path="/settings/profile" element={<ProtectedRoute><SettingsProfilePage /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+
+            {/* Catch-All */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ErrorBoundary>
+      </main>
+    </div>
+  );
+}
+
 export function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="flex min-h-screen flex-col bg-page text-primary selection:bg-accent-soft selection:text-accent">
-          <Navbar />
-          <main className="flex-1 pb-28">
-            <ErrorBoundary>
-              <Routes>
-              {/* Home and Core Features */}
-              <Route path="/" element={<HomeRoute />} />
-              <Route path="/welcome" element={<LandingPage />} />
-              <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
-              <Route path="/explore" element={<ExplorePage />} />
-              <Route path="/post/:id" element={<PostDetailPage />} />
-              <Route path="/saved" element={<ProtectedRoute><SavedPostsPage /></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-              <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-
-              {/* Public Informational */}
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/privacy" element={<PrivacyPage />} />
-
-              {/* Authentication */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-              {/* Profile, Settings, and Admin */}
-              <Route path="/onboarding" element={<ProtectedRoute><OnboardingProfilePage /></ProtectedRoute>} />
-              <Route path="/profile/:username" element={<ProfilePage />} />
-              <Route path="/settings/profile" element={<ProtectedRoute><SettingsProfilePage /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
-
-              {/* Catch-All */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </ErrorBoundary>
-        </main>
-        </div>
+        <AppLayout />
       </BrowserRouter>
     </AuthProvider>
   );

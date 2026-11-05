@@ -37,7 +37,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4 py-8 sm:px-6">
+    <div className="flex-1 flex items-center justify-center p-4 sm:p-6 w-full my-auto">
       <div className="w-full max-w-md sm:max-w-[460px] space-y-6 bg-surface p-7 sm:p-10 rounded-3xl border border-border shadow-xl">
         {/* Brand & Heading */}
         <div className="text-center space-y-2.5">
