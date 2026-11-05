@@ -25,10 +25,37 @@ export function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+
+    if (name === 'username') {
+      // Auto-sanitize username as user types:
+      // Replace spaces, dots, dashes with underscores, remove invalid symbols, lowercase, max 30 chars
+      const sanitized = value
+        .toLowerCase()
+        .replace(/[\s.-]+/g, '_')
+        .replace(/[^a-z0-9_]/g, '')
+        .slice(0, 30);
+
+      setFormData((prev) => ({ ...prev, username: sanitized }));
+      return;
+    }
+
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+
+      // Auto-suggest a clean username from display name if username has not been typed yet
+      if (name === 'displayName' && !prev.username) {
+        next.username = value
+          .toLowerCase()
+          .replace(/[\s.-]+/g, '_')
+          .replace(/[^a-z0-9_]/g, '')
+          .slice(0, 30);
+      }
+
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -46,10 +73,26 @@ export function RegisterPage() {
       return;
     }
 
-    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
-    if (!usernameRegex.test(formData.username)) {
-      setErrorMessage('Username must be 3-30 alphanumeric characters or underscores.');
-      return;
+    // Sanitize and ensure valid username
+    let cleanUsername = (formData.username || '').trim().toLowerCase();
+
+    // If user pasted an email address into username field, extract handle
+    if (cleanUsername.includes('@')) {
+      cleanUsername = cleanUsername.split('@')[0];
+    }
+
+    cleanUsername = cleanUsername
+      .replace(/[\s.-]+/g, '_')
+      .replace(/[^a-z0-9_]/g, '')
+      .slice(0, 30);
+
+    // If still under 3 characters, derive from email or display name
+    if (cleanUsername.length < 3) {
+      const fallback = (formData.email.split('@')[0] || formData.displayName || 'user')
+        .toLowerCase()
+        .replace(/[\s.-]+/g, '_')
+        .replace(/[^a-z0-9_]/g, '');
+      cleanUsername = (fallback + '_' + Math.random().toString(36).slice(2, 6)).slice(0, 30);
     }
 
     if (!formData.agreeTerms) {
@@ -63,8 +106,8 @@ export function RegisterPage() {
       const data = await signUp({
         email: formData.email,
         password: formData.password,
-        username: formData.username,
-        displayName: formData.displayName,
+        username: cleanUsername,
+        displayName: formData.displayName || cleanUsername,
       });
 
       // If email confirmation is required by Supabase settings:
@@ -132,7 +175,7 @@ export function RegisterPage() {
             type="text"
             required
             placeholder="elena"
-            hint="3-30 letters, numbers, or underscores"
+            hint="Letters, numbers, or underscores (spaces auto-convert to _)"
             value={formData.username}
             onChange={handleChange}
           />
