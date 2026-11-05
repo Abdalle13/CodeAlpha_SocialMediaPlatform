@@ -5,7 +5,8 @@ import { uploadToImageKit, deleteFromImageKit } from '../media/imagekit';
 
 const PAGE_SIZE = 12;
 
-const POST_WITH_MEDIA_SELECT = '*, post_media(*)';
+const POST_WITH_MEDIA_SELECT =
+  '*, profiles:profiles!author_id (id, username, display_name, avatar_url), post_media(*), likes(user_id), saved_posts(user_id), comments(id)';
 
 export function usePosts() {
   const { user } = useAuth();
