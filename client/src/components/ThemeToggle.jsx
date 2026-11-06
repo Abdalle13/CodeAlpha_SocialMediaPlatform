@@ -6,7 +6,7 @@ export function ThemeToggle({ className = '' }) {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('veyra_theme');
       if (stored) return stored;
-      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      return 'light';
     }
     return 'light';
   });

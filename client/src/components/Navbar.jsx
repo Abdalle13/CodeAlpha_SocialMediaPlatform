@@ -26,80 +26,90 @@ export function Navbar() {
 
   const profileHref = profile?.username ? `/profile/${profile.username}` : '#';
 
-  // Authenticated user navigation dock (Instagram-style bottom dock)
+  // Authenticated user navigation dock (Full-width Instagram/native mobile style bottom bar)
   return (
     <nav
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 sm:gap-4 rounded-full bg-[#121214]/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-white/10 px-2 py-1.5 sm:px-4 sm:py-2 shadow-2xl text-white transition-all duration-200"
-      aria-label="App Navigation Dock"
+      className="fixed bottom-0 left-0 right-0 w-full z-50 flex items-center justify-around bg-surface/95 dark:bg-[#121214]/95 backdrop-blur-xl border-t border-border py-2 px-2 sm:px-8 shadow-lg text-primary transition-all duration-200"
+      aria-label="App Navigation Bar"
     >
       {/* 1. Home Feed */}
       <Link
         to="/"
-        className={`flex items-center justify-center transition-all ${
+        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
           isHome
-            ? 'rounded-full bg-white/15 px-4 py-2 sm:px-5 sm:py-2 text-white shadow-sm'
-            : 'p-2 sm:p-2.5 text-zinc-400 hover:text-white hover:bg-white/5 rounded-full'
+            ? 'text-accent'
+            : 'text-secondary hover:text-primary'
         }`}
         title="Home Feed"
       >
-        <Home className={`w-5 h-5 ${isHome ? 'fill-current' : ''}`} />
+        <div className={`p-1.5 rounded-full transition-colors ${isHome ? 'bg-accent-soft text-accent' : ''}`}>
+          <Home className={`w-5 h-5 ${isHome ? 'fill-current' : ''}`} />
+        </div>
       </Link>
 
       {/* 2. Unified Search & Explore */}
       <Link
         to="/explore"
-        className={`flex items-center justify-center transition-all ${
+        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
           isExplore
-            ? 'rounded-full bg-white/15 px-4 py-2 sm:px-5 sm:py-2 text-white shadow-sm'
-            : 'p-2 sm:p-2.5 text-zinc-400 hover:text-white hover:bg-white/5 rounded-full'
+            ? 'text-accent'
+            : 'text-secondary hover:text-primary'
         }`}
         title="Search & Explore"
       >
-        <Search className="w-5 h-5" />
+        <div className={`p-1.5 rounded-full transition-colors ${isExplore ? 'bg-accent-soft text-accent' : ''}`}>
+          <Search className="w-5 h-5" />
+        </div>
       </Link>
 
       {/* 3. Direct Messages */}
       <Link
         to="/messages"
-        className={`relative flex items-center justify-center transition-all ${
+        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
           isMessages
-            ? 'rounded-full bg-white/15 px-4 py-2 sm:px-5 sm:py-2 text-white shadow-sm'
-            : 'p-2 sm:p-2.5 text-zinc-400 hover:text-white hover:bg-white/5 rounded-full'
+            ? 'text-accent'
+            : 'text-secondary hover:text-primary'
         }`}
         title="Direct Messages"
       >
-        <Send className="w-5 h-5" />
-        {unreadMessages > 0 && (
-          <span className="absolute bottom-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#121214]" />
-        )}
+        <div className={`relative p-1.5 rounded-full transition-colors ${isMessages ? 'bg-accent-soft text-accent' : ''}`}>
+          <Send className="w-5 h-5" />
+          {unreadMessages > 0 && (
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface" />
+          )}
+        </div>
       </Link>
 
-      {/* 4. Profile Avatar (Direct link to profile page, no popup menu) */}
+      {/* 4. Profile Avatar */}
       <Link
         to={profileHref}
-        className={`relative p-0.5 rounded-full transition-all flex items-center justify-center ${
+        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
           isProfile
-            ? 'ring-2 ring-white scale-105'
-            : 'hover:opacity-90 opacity-80 hover:opacity-100'
+            ? 'text-accent'
+            : 'text-secondary hover:text-primary'
         }`}
         title="My Profile"
       >
-        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full overflow-hidden border border-white/20 bg-zinc-800">
-          {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt={profile?.display_name || 'Profile'}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-white">
-              {(profile?.display_name || user?.email || 'U')[0].toUpperCase()}
-            </div>
+        <div className="relative">
+          <div className={`h-7 w-7 rounded-full overflow-hidden border transition-all ${
+            isProfile ? 'ring-2 ring-accent border-transparent scale-105' : 'border-border hover:opacity-90'
+          }`}>
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile?.display_name || 'Profile'}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-xs font-semibold bg-surface-raised text-primary">
+                {(profile?.display_name || user?.email || 'U')[0].toUpperCase()}
+              </div>
+            )}
+          </div>
+          {unreadNotifications > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-surface" />
           )}
         </div>
-        {unreadNotifications > 0 && (
-          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[#121214]" />
-        )}
       </Link>
     </nav>
   );

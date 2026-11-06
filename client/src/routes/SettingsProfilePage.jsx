@@ -30,6 +30,11 @@ export function SettingsProfilePage() {
   const [passwordError, setPasswordError] = useState(null);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  // Email update state
+  const [newEmail, setNewEmail] = useState('');
+  const [emailError, setEmailError] = useState(null);
+  const [isChangingEmail, setIsChangingEmail] = useState(false);
+
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -93,6 +98,32 @@ export function SettingsProfilePage() {
       setPasswordError(err.message || 'Could not update password.');
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleEmailChange = async (e) => {
+    e.preventDefault();
+    const clean = newEmail.trim().toLowerCase();
+    if (!clean || !clean.includes('@')) {
+      setEmailError('Please enter a valid email address.');
+      return;
+    }
+    if (clean === user?.email?.toLowerCase()) {
+      setEmailError('New email is the same as your current email.');
+      return;
+    }
+
+    setEmailError(null);
+    setIsChangingEmail(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email: clean });
+      if (error) throw error;
+      setNewEmail('');
+      showToast('Confirmation link sent! Please check your new email to verify.', 'success');
+    } catch (err) {
+      setEmailError(err.message || 'Could not update email.');
+    } finally {
+      setIsChangingEmail(false);
     }
   };
 
@@ -258,11 +289,11 @@ export function SettingsProfilePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b border-border mb-8">
+      <div className="flex gap-3 sm:gap-6 border-b border-border mb-6 sm:mb-8 overflow-x-auto pb-1">
         <button
           type="button"
           onClick={() => setActiveTab('profile')}
-          className={`flex items-center gap-2 pb-3 text-xs font-semibold border-b-2 transition-colors ${
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
             activeTab === 'profile'
               ? 'border-accent text-accent'
               : 'border-transparent text-secondary hover:text-primary'
@@ -275,25 +306,25 @@ export function SettingsProfilePage() {
         <button
           type="button"
           onClick={() => setActiveTab('security')}
-          className={`flex items-center gap-2 pb-3 text-xs font-semibold border-b-2 transition-colors ${
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
             activeTab === 'security'
               ? 'border-accent text-accent'
               : 'border-transparent text-secondary hover:text-primary'
           }`}
         >
           <Shield className="w-4 h-4" />
-          <span>Security & Password</span>
+          <span>Security & Credentials</span>
         </button>
       </div>
 
       {activeTab === 'profile' ? (
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
         {/* Cover Photo Management */}
         <div className="space-y-2">
           <label className="block text-xs font-semibold uppercase tracking-wider text-secondary">
             Cover Banner
           </label>
-          <div className="relative h-32 w-full rounded-xl border border-border bg-page overflow-hidden group">
+          <div className="relative h-28 sm:h-36 w-full rounded-xl border border-border bg-page overflow-hidden group">
             {coverUrl ? (
               <img src={coverUrl} alt="Cover preview" className="w-full h-full object-cover" />
             ) : (
@@ -302,14 +333,14 @@ export function SettingsProfilePage() {
               </div>
             )}
 
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <div className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 sm:gap-3 p-2">
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
                 isLoading={uploadingCover}
                 onClick={() => coverInputRef.current?.click()}
-                className="gap-1.5"
+                className="gap-1.5 text-xs"
               >
                 <Camera className="w-3.5 h-3.5" />
                 <span>Upload cover</span>
@@ -320,7 +351,7 @@ export function SettingsProfilePage() {
                   variant="destructive"
                   size="sm"
                   onClick={handleRemoveCover}
-                  className="gap-1.5"
+                  className="gap-1.5 text-xs"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Remove</span>
@@ -342,21 +373,21 @@ export function SettingsProfilePage() {
           <label className="block text-xs font-semibold uppercase tracking-wider text-secondary">
             Profile Avatar
           </label>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Avatar
               src={avatarUrl}
               name={displayName || 'User'}
               size="xl"
               className="ring-2 ring-border"
             />
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 isLoading={uploadingAvatar}
                 onClick={() => avatarInputRef.current?.click()}
-                className="gap-1.5"
+                className="gap-1.5 text-xs"
               >
                 <Camera className="w-3.5 h-3.5" />
                 <span>Change photo</span>
@@ -368,7 +399,7 @@ export function SettingsProfilePage() {
                   variant="ghost"
                   size="sm"
                   onClick={handleRemoveAvatar}
-                  className="gap-1.5 text-danger hover:text-danger hover:bg-danger-soft"
+                  className="gap-1.5 text-xs text-danger hover:text-danger hover:bg-danger-soft"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Remove</span>
@@ -438,9 +469,9 @@ export function SettingsProfilePage() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 pt-6 border-t border-border">
-          <Link to={profile?.username ? `/profile/${profile.username}` : '/'}>
-            <Button variant="ghost" size="md">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 pt-6 border-t border-border">
+          <Link to={profile?.username ? `/profile/${profile.username}` : '/'} className="w-full sm:w-auto">
+            <Button variant="ghost" size="md" className="w-full sm:w-auto">
               Cancel
             </Button>
           </Link>
@@ -449,7 +480,7 @@ export function SettingsProfilePage() {
             variant="primary"
             size="md"
             isLoading={isSaving}
-            className="gap-2 min-w-[120px]"
+            className="gap-2 w-full sm:w-auto min-w-[120px]"
           >
             <Check className="w-4 h-4" />
             <span>Save changes</span>
@@ -458,8 +489,58 @@ export function SettingsProfilePage() {
       </form>
       ) : (
         /* Security and Credentials Tab */
-        <div className="space-y-8">
-          <form onSubmit={handlePasswordChange} className="rounded-xl border border-border bg-surface p-6 space-y-4">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Change Email Address */}
+          <form onSubmit={handleEmailChange} className="rounded-xl border border-border bg-surface p-4 sm:p-6 space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-primary">Change Email Address</h2>
+              <p className="text-xs text-secondary mt-0.5">
+                Update the primary email address linked to your Veyra account.
+              </p>
+            </div>
+
+            {emailError && (
+              <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-2.5 text-xs text-red-600 dark:text-red-400">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{emailError}</span>
+              </div>
+            )}
+
+            <div className="space-y-3.5 max-w-md">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-secondary mb-1">
+                  Current Email
+                </label>
+                <p className="text-xs font-mono text-primary bg-page border border-border rounded-lg px-3 py-2 select-all">
+                  {user?.email || 'No email attached'}
+                </p>
+              </div>
+
+              <Input
+                label="New Email Address"
+                type="email"
+                id="new-email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="Enter new email address"
+                required
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                isLoading={isChangingEmail}
+                disabled={!newEmail.trim() || isChangingEmail}
+                className="w-full sm:w-auto"
+              >
+                Update email
+              </Button>
+            </div>
+          </form>
+
+          {/* Change Password */}
+          <form onSubmit={handlePasswordChange} className="rounded-xl border border-border bg-surface p-4 sm:p-6 space-y-4">
             <div>
               <h2 className="text-base font-semibold text-primary">Change Password</h2>
               <p className="text-xs text-secondary mt-0.5">
@@ -501,6 +582,7 @@ export function SettingsProfilePage() {
                 size="sm"
                 isLoading={isChangingPassword}
                 disabled={!newPassword || isChangingPassword}
+                className="w-full sm:w-auto"
               >
                 Update password
               </Button>
@@ -508,7 +590,7 @@ export function SettingsProfilePage() {
           </form>
 
           {/* Account Metadata Details */}
-          <div className="rounded-xl border border-border bg-surface p-6 space-y-4">
+          <div className="rounded-xl border border-border bg-surface p-4 sm:p-6 space-y-4">
             <div>
               <h2 className="text-base font-semibold text-primary">Account Information</h2>
               <p className="text-xs text-secondary mt-0.5">

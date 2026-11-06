@@ -6,7 +6,7 @@ import { PostCard } from '../features/posts/PostCard';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Skeleton } from '../components/Skeleton';
-import { RefreshCw, Sparkles, Bell, Bookmark } from 'lucide-react';
+import { RefreshCw, Sparkles, Bell } from 'lucide-react';
 import { Wordmark } from '../components/Wordmark';
 import { Link } from 'react-router-dom';
 import { useNotifications } from '../features/notifications/useNotifications';
@@ -53,13 +53,6 @@ export function FeedPage() {
             {unreadNotifications > 0 && (
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-page" />
             )}
-          </Link>
-          <Link
-            to="/saved"
-            className="p-2 rounded-full text-secondary hover:text-primary hover:bg-surface transition-colors"
-            title="Saved Posts"
-          >
-            <Bookmark className="w-5 h-5" />
           </Link>
           <button
             type="button"

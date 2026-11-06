@@ -15,6 +15,7 @@ import {
   Mail,
   CheckCheck,
   UserCheck,
+  ArrowLeft,
 } from 'lucide-react';
 
 function getNotificationContent(item) {
@@ -188,11 +189,20 @@ export function NotificationsPage() {
     <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-primary">Notifications</h1>
-          <p className="text-xs text-secondary mt-0.5">
-            Activity and interactions regarding your account.
-          </p>
+        <div className="flex items-center gap-2.5">
+          <Link
+            to="/"
+            className="p-1.5 -ml-1 rounded-full text-secondary hover:text-primary hover:bg-surface transition-colors"
+            title="Back to Home"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-primary">Notifications</h1>
+            <p className="text-xs text-secondary mt-0.5">
+              Activity and interactions regarding your account.
+            </p>
+          </div>
         </div>
 
         {unreadCount > 0 && (

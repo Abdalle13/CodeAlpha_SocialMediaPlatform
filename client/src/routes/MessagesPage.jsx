@@ -25,6 +25,7 @@ export function MessagesPage() {
   const { user } = useAuth();
   const [selectedConvoId, setSelectedConvoId] = useState(null);
   const [inputText, setInputText] = useState('');
+  const [convoFilterQuery, setConvoFilterQuery] = useState('');
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [userSearchResults, setUserSearchResults] = useState([]);
@@ -101,6 +102,24 @@ export function MessagesPage() {
     conversations.map((c) => c.otherUser?.id).filter(Boolean)
   );
   const mutualContactsNotInConvo = mutualFollows.filter((m) => !convoUserIds.has(m.id));
+
+  // Filter by sidebar search query
+  const filteredConversations = conversations.filter((c) => {
+    if (!convoFilterQuery.trim()) return true;
+    const q = convoFilterQuery.toLowerCase();
+    const name = (c.otherUser?.display_name || '').toLowerCase();
+    const handle = (c.otherUser?.username || '').toLowerCase();
+    const lastMsg = (c.lastMessage?.body || '').toLowerCase();
+    return name.includes(q) || handle.includes(q) || lastMsg.includes(q);
+  });
+
+  const filteredMutualContacts = mutualContactsNotInConvo.filter((m) => {
+    if (!convoFilterQuery.trim()) return true;
+    const q = convoFilterQuery.toLowerCase();
+    const name = (m.display_name || '').toLowerCase();
+    const handle = (m.username || '').toLowerCase();
+    return name.includes(q) || handle.includes(q);
+  });
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -188,6 +207,20 @@ export function MessagesPage() {
             </Button>
           </div>
 
+          {/* Search conversations bar */}
+          <div className="p-2.5 border-b border-border bg-surface">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary" />
+              <input
+                type="text"
+                value={convoFilterQuery}
+                onChange={(e) => setConvoFilterQuery(e.target.value)}
+                placeholder="Search chats & contacts..."
+                className="w-full rounded-lg border border-border bg-page pl-8 pr-3 py-1.5 text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
+              />
+            </div>
+          </div>
+
           {/* Conversations + Mutual contacts list */}
           <div className="flex-1 overflow-y-auto divide-y divide-border/60">
             {isLoadingConversations ? (
@@ -222,7 +255,7 @@ export function MessagesPage() {
             ) : (
               <>
                 {/* Real conversations */}
-                {conversations.map((convo) => {
+                {filteredConversations.map((convo) => {
                   const other = convo.otherUser;
                   const isSelected = convo.id === selectedConvoId;
 
@@ -270,14 +303,14 @@ export function MessagesPage() {
                 })}
 
                 {/* Mutual follows without a conversation yet */}
-                {mutualContactsNotInConvo.length > 0 && (
+                {filteredMutualContacts.length > 0 && (
                   <>
-                    {conversations.length > 0 && (
+                    {filteredConversations.length > 0 && (
                       <div className="px-3.5 py-2 text-[10px] font-semibold uppercase tracking-wider text-secondary bg-page/40">
                         People you follow
                       </div>
                     )}
-                    {mutualContactsNotInConvo.map((contact) => (
+                    {filteredMutualContacts.map((contact) => (
                       <button
                         key={contact.id}
                         type="button"
