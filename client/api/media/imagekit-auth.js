@@ -60,3 +60,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: { message: 'Failed to generate upload credentials.', status: 500 } });
   }
 }
+
