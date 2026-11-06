@@ -33,6 +33,11 @@ export function AuthProvider({ children }) {
         return;
       }
 
+      // Safety timeout: Never keep screen blank/loading for more than 2.5s on slow mobile networks
+      const safetyTimer = setTimeout(() => {
+        if (mounted) setIsLoading(false);
+      }, 2500);
+
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         if (error) console.error('[Veyra Auth] Error getting session:', error.message);
@@ -41,13 +46,16 @@ export function AuthProvider({ children }) {
           setSession(initialSession);
           setUser(initialSession?.user ?? null);
           if (initialSession?.user) {
-            fetchProfile(initialSession.user.id);
+            await fetchProfile(initialSession.user.id);
           } else {
             setIsLoading(false);
           }
         }
       } catch (err) {
         console.error('[Veyra Auth] Initialization error:', err);
+        if (mounted) setIsLoading(false);
+      } finally {
+        clearTimeout(safetyTimer);
         if (mounted) setIsLoading(false);
       }
     }

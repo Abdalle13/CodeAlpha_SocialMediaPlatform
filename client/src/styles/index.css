@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --color-page: #FFFFFF;
+  --color-page: #FAFAF8;
   --color-surface: #FFFFFF;
-  --color-surface-raised: #F9FAF9;
+  --color-surface-raised: #FFFFFF;
   --color-text-primary: #1C201D;
   --color-text-secondary: #636D64;
   --color-border: #E8ECE6;

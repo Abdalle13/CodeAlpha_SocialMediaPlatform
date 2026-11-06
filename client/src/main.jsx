@@ -3,12 +3,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/index.css';
 
-// Initialize theme from storage (default to light/white unless explicitly dark)
+// Initialize theme safely (default to light/white unless explicitly dark)
 if (typeof window !== 'undefined') {
-  const storedTheme = localStorage.getItem('veyra_theme');
-  if (storedTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
+  try {
+    const storedTheme = localStorage.getItem('veyra_theme');
+    if (storedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  } catch {
     document.documentElement.classList.remove('dark');
   }
 }

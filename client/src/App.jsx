@@ -23,8 +23,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 
 function LoadingScreen() {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <div className="h-7 w-7 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+    <div className="flex min-h-[60vh] flex-col items-center justify-center p-4 text-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent mb-3" />
+      <p className="text-xs text-secondary">Loading Veyra...</p>
     </div>
   );
 }
@@ -96,11 +97,13 @@ function AppLayout() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppLayout />
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppLayout />
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
