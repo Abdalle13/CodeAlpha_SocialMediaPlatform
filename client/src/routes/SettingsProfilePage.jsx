@@ -264,8 +264,12 @@ export function SettingsProfilePage() {
   return (
     <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Toast type={toastMessage.type} message={toastMessage.message} />
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4">
+          <Toast
+            type={toastMessage.type}
+            message={toastMessage.message}
+            onClose={() => setToastMessage(null)}
+          />
         </div>
       )}
 

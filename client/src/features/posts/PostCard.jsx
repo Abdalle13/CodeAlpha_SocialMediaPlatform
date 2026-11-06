@@ -8,6 +8,7 @@ import { ImageViewerModal } from './ImageViewerModal';
 import { ReportModal } from '../moderation/ReportModal';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
+import { Dialog } from '../../components/Dialog';
 import {
   Heart,
   MessageCircle,
@@ -50,6 +51,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, initialShowCommen
   const [activeMediaUrl, setActiveMediaUrl] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const author = post.profiles;
@@ -67,14 +69,13 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, initialShowCommen
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
-    setMenuOpen(false);
+  const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
       if (onPostDeleted) {
         await onPostDeleted(post.id);
       }
+      setIsDeleteModalOpen(false);
     } catch (err) {
       console.error('Delete error:', err);
     } finally {
@@ -169,12 +170,15 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, initialShowCommen
                   </button>
                   <button
                     type="button"
-                    onClick={handleDelete}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setIsDeleteModalOpen(true);
+                    }}
                     disabled={isDeleting}
                     className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-left text-red-600 hover:bg-red-500/10 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>{isDeleting ? 'Deleting...' : 'Delete post'}</span>
+                    <span>Delete post</span>
                   </button>
                 </>
               ) : (
@@ -324,6 +328,35 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, initialShowCommen
           targetName="this post"
         />
       )}
+      {/* Delete Confirmation Modal */}
+      <Dialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+        title="Delete post?"
+        description="This action cannot be undone. This post will be permanently removed from your profile and feed."
+        maxWidth="max-w-sm"
+      >
+        <div className="flex items-center justify-end gap-3 mt-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={handleConfirmDelete}
+            isLoading={isDeleting}
+          >
+            Delete
+          </Button>
+        </div>
+      </Dialog>
     </article>
   );
 }

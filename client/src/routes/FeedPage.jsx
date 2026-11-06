@@ -10,25 +10,34 @@ import { RefreshCw, Sparkles, Bell } from 'lucide-react';
 import { Wordmark } from '../components/Wordmark';
 import { Link } from 'react-router-dom';
 import { useNotifications } from '../features/notifications/useNotifications';
+import { Toast } from '../components/Toast';
 
 export function FeedPage() {
   const { posts, isLoading, isLoadingMore, hasMore, error, loadMore, refresh } = useFeed();
   const { deletePost, updatePost } = usePosts();
   const { unreadCount: unreadNotifications } = useNotifications();
   const [feedPosts, setFeedPosts] = useState([]);
+  const [toastMessage, setToastMessage] = useState(null);
 
   useEffect(() => {
     setFeedPosts(posts);
   }, [posts]);
 
+  const showToast = (message, type = 'success') => {
+    setToastMessage({ message, type });
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const handlePostCreated = (newPost) => {
     // Refresh feed to get complete joined data
     refresh();
+    showToast('Post published successfully');
   };
 
   const handlePostDeleted = async (postId) => {
     await deletePost(postId);
     setFeedPosts((prev) => prev.filter((p) => p.id !== postId));
+    showToast('Post deleted successfully');
   };
 
   const handlePostUpdated = async (postId, updates) => {
@@ -40,6 +49,16 @@ export function FeedPage() {
 
   return (
     <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      {toastMessage && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4">
+          <Toast
+            type={toastMessage.type}
+            message={toastMessage.message}
+            onClose={() => setToastMessage(null)}
+          />
+        </div>
+      )}
+
       {/* Top Header Bar */}
       <div className="flex items-center justify-between mb-6 px-1">
         <Wordmark size="md" />

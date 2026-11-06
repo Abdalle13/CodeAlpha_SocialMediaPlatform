@@ -26,16 +26,16 @@ export function Navbar() {
 
   const profileHref = profile?.username ? `/profile/${profile.username}` : '#';
 
-  // Authenticated user navigation dock (Full-width Instagram/native mobile style bottom bar)
+  // Authenticated user navigation: full-width on mobile, centered pill on laptops, pure white/black, no shadow
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 w-full z-50 flex items-center justify-around bg-surface/95 dark:bg-[#121214]/95 backdrop-blur-xl border-t border-border py-2 px-2 sm:px-8 shadow-lg text-primary transition-all duration-200"
+      className="fixed bottom-0 left-0 right-0 w-full z-50 flex items-center justify-around bg-white dark:bg-black border-t border-neutral-200 dark:border-neutral-800 py-2 px-3 sm:bottom-5 sm:left-1/2 sm:-translate-x-1/2 sm:w-auto sm:min-w-[340px] sm:max-w-md sm:rounded-full sm:border sm:px-6 sm:py-2 text-primary shadow-none transition-all duration-200"
       aria-label="App Navigation Bar"
     >
       {/* 1. Home Feed */}
       <Link
         to="/"
-        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
+        className={`flex-1 sm:flex-initial flex flex-col items-center justify-center py-1 sm:px-3 transition-all ${
           isHome
             ? 'text-accent'
             : 'text-secondary hover:text-primary'
@@ -50,7 +50,7 @@ export function Navbar() {
       {/* 2. Unified Search & Explore */}
       <Link
         to="/explore"
-        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
+        className={`flex-1 sm:flex-initial flex flex-col items-center justify-center py-1 sm:px-3 transition-all ${
           isExplore
             ? 'text-accent'
             : 'text-secondary hover:text-primary'
@@ -65,7 +65,7 @@ export function Navbar() {
       {/* 3. Direct Messages */}
       <Link
         to="/messages"
-        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
+        className={`flex-1 sm:flex-initial flex flex-col items-center justify-center py-1 sm:px-3 transition-all ${
           isMessages
             ? 'text-accent'
             : 'text-secondary hover:text-primary'
@@ -75,7 +75,7 @@ export function Navbar() {
         <div className={`relative p-1.5 rounded-full transition-colors ${isMessages ? 'bg-accent-soft text-accent' : ''}`}>
           <Send className="w-5 h-5" />
           {unreadMessages > 0 && (
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
           )}
         </div>
       </Link>
@@ -83,7 +83,7 @@ export function Navbar() {
       {/* 4. Profile Avatar */}
       <Link
         to={profileHref}
-        className={`flex-1 flex flex-col items-center justify-center py-1 transition-all ${
+        className={`flex-1 sm:flex-initial flex flex-col items-center justify-center py-1 sm:px-3 transition-all ${
           isProfile
             ? 'text-accent'
             : 'text-secondary hover:text-primary'
@@ -92,7 +92,7 @@ export function Navbar() {
       >
         <div className="relative">
           <div className={`h-7 w-7 rounded-full overflow-hidden border transition-all ${
-            isProfile ? 'ring-2 ring-accent border-transparent scale-105' : 'border-border hover:opacity-90'
+            isProfile ? 'ring-2 ring-accent border-transparent scale-105' : 'border-neutral-300 dark:border-neutral-700 hover:opacity-90'
           }`}>
             {profile?.avatar_url ? (
               <img
@@ -101,13 +101,13 @@ export function Navbar() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="h-full w-full flex items-center justify-center text-xs font-semibold bg-surface-raised text-primary">
+              <div className="h-full w-full flex items-center justify-center text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 text-primary">
                 {(profile?.display_name || user?.email || 'U')[0].toUpperCase()}
               </div>
             )}
           </div>
           {unreadNotifications > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-surface" />
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-black" />
           )}
         </div>
       </Link>

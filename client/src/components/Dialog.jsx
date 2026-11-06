@@ -45,7 +45,7 @@ export function Dialog({ isOpen, onClose, title, description, children, maxWidth
         aria-labelledby={title ? 'dialog-title' : undefined}
         aria-describedby={description ? 'dialog-description' : undefined}
         tabIndex={-1}
-        className={`w-full ${maxWidth} rounded-xl border border-border bg-surface p-6 shadow-xl text-primary focus:outline-none`}
+        className={`w-full ${maxWidth} rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-6 shadow-none text-primary focus:outline-none animate-in fade-in zoom-in-95 duration-150`}
       >
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>

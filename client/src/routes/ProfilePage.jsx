@@ -216,8 +216,12 @@ export function ProfilePage() {
   return (
     <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Toast type={toastMessage.type} message={toastMessage.message} />
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4">
+          <Toast
+            type={toastMessage.type}
+            message={toastMessage.message}
+            onClose={() => setToastMessage(null)}
+          />
         </div>
       )}
 
@@ -268,45 +272,52 @@ export function ProfilePage() {
                     </button>
 
                     {optionsOpen && (
-                      <div className="absolute right-0 mt-1.5 w-48 rounded-xl border border-border bg-surface shadow-lg py-1.5 z-20 text-xs animate-in fade-in duration-100">
-                        <Link
-                          to="/settings/profile"
+                      <>
+                        <div
+                          className="fixed inset-0 z-20"
                           onClick={() => setOptionsOpen(false)}
-                          className="w-full px-3.5 py-2 flex items-center gap-2.5 text-primary hover:bg-page transition-colors"
-                        >
-                          <Settings className="w-3.5 h-3.5 text-secondary" />
-                          <span>Account Settings</span>
-                        </Link>
-
-                        {profile?.role === 'admin' && (
+                          aria-hidden="true"
+                        />
+                        <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-52 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black py-2 z-30 shadow-none text-xs animate-in fade-in slide-in-from-top-2 duration-150">
                           <Link
-                            to="/admin"
+                            to="/settings/profile"
                             onClick={() => setOptionsOpen(false)}
-                            className="w-full px-3.5 py-2 flex items-center gap-2.5 text-amber-500 hover:bg-amber-500/10 transition-colors"
+                            className="w-full px-4 py-2.5 flex items-center gap-2.5 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors font-medium"
                           >
-                            <Shield className="w-3.5 h-3.5" />
-                            <span>Admin Console</span>
+                            <Settings className="w-4 h-4 text-neutral-500" />
+                            <span>Account Settings</span>
                           </Link>
-                        )}
 
-                        <div className="px-3.5 py-2 flex items-center justify-between text-secondary border-t border-border/70 my-1">
-                          <span>Theme</span>
-                          <ThemeToggle />
+                          {profile?.role === 'admin' && (
+                            <Link
+                              to="/admin"
+                              onClick={() => setOptionsOpen(false)}
+                              className="w-full px-4 py-2.5 flex items-center gap-2.5 text-amber-500 hover:bg-amber-500/10 transition-colors font-medium"
+                            >
+                              <Shield className="w-4 h-4" />
+                              <span>Admin Console</span>
+                            </Link>
+                          )}
+
+                          <div className="px-4 py-2 flex items-center justify-between text-neutral-600 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-800 my-1">
+                            <span>Theme</span>
+                            <ThemeToggle />
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setOptionsOpen(false);
+                              await signOut();
+                              navigate('/login');
+                            }}
+                            className="w-full px-4 py-2.5 text-left flex items-center gap-2.5 text-red-500 hover:bg-red-500/10 transition-colors border-t border-neutral-200 dark:border-neutral-800 font-medium"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span>Sign out</span>
+                          </button>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setOptionsOpen(false);
-                            await signOut();
-                            navigate('/login');
-                          }}
-                          className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-red-500 hover:bg-red-500/10 transition-colors border-t border-border/70"
-                        >
-                          <LogOut className="w-3.5 h-3.5" />
-                          <span>Sign out</span>
-                        </button>
-                      </div>
+                      </>
                     )}
                   </div>
                 </>
@@ -346,35 +357,42 @@ export function ProfilePage() {
                     </button>
 
                     {optionsOpen && (
-                      <div className="absolute right-0 mt-1.5 w-48 rounded-xl border border-border bg-surface shadow-lg py-1.5 z-20 text-xs">
-                        <button
-                          type="button"
-                          onClick={handleCopyLink}
-                          className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-primary hover:bg-page transition-colors"
-                        >
-                          <Share2 className="w-3.5 h-3.5 text-secondary" />
-                          <span>Copy profile link</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleBlockClick}
-                          className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-danger hover:bg-danger-soft transition-colors"
-                        >
-                          <UserX className="w-3.5 h-3.5" />
-                          <span>{isBlocked ? 'Unblock user' : 'Block user'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOptionsOpen(false);
-                            setReportModalOpen(true);
-                          }}
-                          className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-secondary hover:text-danger hover:bg-page transition-colors"
-                        >
-                          <Flag className="w-3.5 h-3.5" />
-                          <span>Report user</span>
-                        </button>
-                      </div>
+                      <>
+                        <div
+                          className="fixed inset-0 z-20"
+                          onClick={() => setOptionsOpen(false)}
+                          aria-hidden="true"
+                        />
+                        <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-48 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black shadow-none py-1.5 z-30 text-xs animate-in fade-in slide-in-from-top-2">
+                          <button
+                            type="button"
+                            onClick={handleCopyLink}
+                            className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-neutral-500" />
+                            <span>Copy profile link</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleBlockClick}
+                            className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-red-500 hover:bg-red-500/10 transition-colors"
+                          >
+                            <UserX className="w-3.5 h-3.5" />
+                            <span>{isBlocked ? 'Unblock user' : 'Block user'}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOptionsOpen(false);
+                              setReportModalOpen(true);
+                            }}
+                            className="w-full px-3.5 py-2 text-left flex items-center gap-2.5 text-neutral-500 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+                          >
+                            <Flag className="w-3.5 h-3.5" />
+                            <span>Report user</span>
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                 </>
@@ -527,6 +545,7 @@ export function ProfilePage() {
                   post={{ ...post, profiles: profile }}
                   onPostDeleted={(deletedId) => {
                     setUserPosts((prev) => prev.filter((p) => p.id !== deletedId));
+                    showToast('Post deleted successfully', 'success');
                   }}
                   onPostUpdated={(postId, updates) => {
                     setUserPosts((prev) =>
@@ -555,6 +574,7 @@ export function ProfilePage() {
                 post={post}
                 onPostDeleted={(deletedId) => {
                   setSavedPosts((prev) => prev.filter((p) => p.id !== deletedId));
+                  showToast('Post removed successfully', 'success');
                 }}
               />
             ))}
