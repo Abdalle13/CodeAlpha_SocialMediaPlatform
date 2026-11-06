@@ -56,7 +56,7 @@ function AppLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-page text-primary selection:bg-accent-soft selection:text-accent">
       <Navbar />
-      <main className={`flex-1 flex flex-col ${isAuthPage ? '' : 'pb-28'}`}>
+      <main className={`flex-1 flex flex-col ${isAuthPage ? '' : 'pb-24 sm:pb-28'}`}>
         <ErrorBoundary>
           <Routes>
             {/* Home and Core Features */}

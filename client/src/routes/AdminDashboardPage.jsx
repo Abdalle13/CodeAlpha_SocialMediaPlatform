@@ -200,7 +200,7 @@ export function AdminDashboardPage() {
   const openReports = reports.filter((r) => r.status === 'open');
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
         <div>

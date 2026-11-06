@@ -115,7 +115,7 @@ export function ExplorePage() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-2 sm:px-4 py-4 sm:py-6">
+    <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-6">
       {/* Instagram-style Search Bar */}
       <div ref={searchContainerRef} className="relative mb-4 sm:mb-6 max-w-lg mx-auto">
         <div className="relative">

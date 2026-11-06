@@ -29,7 +29,7 @@ export function Navbar() {
   // Authenticated user navigation dock (Instagram-style bottom dock)
   return (
     <nav
-      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-4 rounded-full bg-[#121214]/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-white/10 px-3 py-1.5 sm:px-4 sm:py-2 shadow-2xl text-white transition-all duration-200"
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 sm:gap-4 rounded-full bg-[#121214]/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-white/10 px-2 py-1.5 sm:px-4 sm:py-2 shadow-2xl text-white transition-all duration-200"
       aria-label="App Navigation Dock"
     >
       {/* 1. Home Feed */}

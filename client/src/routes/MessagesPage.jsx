@@ -166,8 +166,8 @@ export function MessagesPage() {
   const hasAnything = conversations.length > 0 || mutualContactsNotInConvo.length > 0;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex-1 rounded-2xl border border-border bg-surface shadow-sm overflow-hidden flex">
+    <div className="w-full h-[calc(100vh-5rem)] flex flex-col px-0 sm:px-4 sm:py-4">
+      <div className="flex-1 sm:rounded-2xl border-y sm:border border-border bg-surface shadow-sm overflow-hidden flex min-h-0">
         {/* Left Pane: Conversations + Contacts */}
         <div
           className={`w-full md:w-80 lg:w-96 border-r border-border flex flex-col ${

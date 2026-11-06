@@ -39,7 +39,7 @@ export function FeedPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+    <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {/* Top Header Bar */}
       <div className="flex items-center justify-between mb-6 px-1">
         <Wordmark size="md" />

@@ -214,7 +214,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+    <div className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50">
           <Toast type={toastMessage.type} message={toastMessage.message} />

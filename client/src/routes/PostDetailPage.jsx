@@ -75,7 +75,7 @@ export function PostDetailPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+    <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {/* Back Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
