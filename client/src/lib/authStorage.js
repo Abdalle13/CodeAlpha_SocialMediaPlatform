@@ -10,10 +10,12 @@ const memoryStore = new Map();
 export const authStorage = {
   isRemembered: () => {
     try {
-      if (typeof window === 'undefined') return false;
-      return window.localStorage?.getItem(REMEMBER_PREF_KEY) === 'true';
+      if (typeof window === 'undefined') return true;
+      const pref = window.localStorage?.getItem(REMEMBER_PREF_KEY);
+      // Default to persistent storage (true) unless explicitly set to 'false'
+      return pref !== 'false';
     } catch {
-      return false;
+      return true;
     }
   },
 
@@ -23,7 +25,7 @@ export const authStorage = {
       if (remember) {
         window.localStorage?.setItem(REMEMBER_PREF_KEY, 'true');
       } else {
-        window.localStorage?.removeItem(REMEMBER_PREF_KEY);
+        window.localStorage?.setItem(REMEMBER_PREF_KEY, 'false');
       }
     } catch {
       // Ignore if localStorage unavailable

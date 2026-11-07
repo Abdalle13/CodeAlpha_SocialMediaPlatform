@@ -19,22 +19,60 @@ export async function apiClient(endpoint, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
 
-  const data = await response.json().catch(() => ({}));
+    if (response.status === 404 && url.startsWith('/api')) {
+      const fallbackUrl = `https://veyra-nine-eosin.vercel.app/api${cleanEndpoint}`;
+      const fallbackRes = await fetch(fallbackUrl, {
+        ...options,
+        headers,
+      });
+      const fallbackData = await fallbackRes.json().catch(() => ({}));
+      if (!fallbackRes.ok) {
+        const error = new Error(fallbackData?.error?.message || `Request failed with status ${fallbackRes.status}`);
+        error.status = fallbackRes.status;
+        error.data = fallbackData;
+        throw error;
+      }
+      return fallbackData;
+    }
 
-  if (!response.ok) {
-    const error = new Error(data?.error?.message || `Request failed with status ${response.status}`);
-    error.status = response.status;
-    error.data = data;
-    throw error;
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = new Error(data?.error?.message || `Request failed with status ${response.status}`);
+      error.status = response.status;
+      error.data = data;
+      throw error;
+    }
+
+    return data;
+  } catch (err) {
+    if (err.status) throw err;
+
+    if (url.startsWith('/api')) {
+      const fallbackUrl = `https://veyra-nine-eosin.vercel.app/api${cleanEndpoint}`;
+      const fallbackRes = await fetch(fallbackUrl, {
+        ...options,
+        headers,
+      });
+      const fallbackData = await fallbackRes.json().catch(() => ({}));
+      if (!fallbackRes.ok) {
+        const error = new Error(fallbackData?.error?.message || `Request failed with status ${fallbackRes.status}`);
+        error.status = fallbackRes.status;
+        error.data = fallbackData;
+        throw error;
+      }
+      return fallbackData;
+    }
+    throw err;
   }
-
-  return data;
 }
 
