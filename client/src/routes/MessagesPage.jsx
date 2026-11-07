@@ -135,30 +135,36 @@ export function MessagesPage() {
     }
   };
 
-  const handleSearchUsers = async (query) => {
-    setUserSearchQuery(query);
-    if (!query.trim()) {
+  // Debounced member search for New Chat modal
+  useEffect(() => {
+    const query = userSearchQuery.trim();
+    if (!query) {
       setUserSearchResults([]);
+      setIsSearchingUsers(false);
       return;
     }
 
-    setIsSearchingUsers(true);
-    try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, username, display_name, avatar_url')
-        .neq('id', user.id)
-        .eq('status', 'active')
-        .or(`username.ilike.%${query.trim()}%,display_name.ilike.%${query.trim()}%`)
-        .limit(10);
+    const timer = setTimeout(async () => {
+      setIsSearchingUsers(true);
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .neq('id', user.id)
+          .eq('status', 'active')
+          .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+          .limit(10);
 
-      setUserSearchResults(data || []);
-    } catch (err) {
-      console.error('User search error:', err);
-    } finally {
-      setIsSearchingUsers(false);
-    }
-  };
+        setUserSearchResults(data || []);
+      } catch (err) {
+        console.error('User search error:', err);
+      } finally {
+        setIsSearchingUsers(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [userSearchQuery, user?.id]);
 
   const handleStartChatWithUser = async (targetUser) => {
     try {
@@ -185,7 +191,7 @@ export function MessagesPage() {
   const hasAnything = conversations.length > 0 || mutualContactsNotInConvo.length > 0;
 
   return (
-    <div className="w-full h-[calc(100vh-5rem)] flex flex-col px-0 sm:px-4 sm:py-4">
+    <div className="w-full h-[calc(100dvh-7.5rem)] sm:h-[calc(100vh-6rem)] flex flex-col px-0 sm:px-4 sm:py-3">
       <div className="flex-1 sm:rounded-2xl border-y sm:border border-border bg-surface shadow-sm overflow-hidden flex min-h-0">
         {/* Left Pane: Conversations + Contacts */}
         <div
@@ -216,7 +222,7 @@ export function MessagesPage() {
                 value={convoFilterQuery}
                 onChange={(e) => setConvoFilterQuery(e.target.value)}
                 placeholder="Search chats & contacts..."
-                className="w-full rounded-lg border border-border bg-page pl-8 pr-3 py-1.5 text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
+                className="w-full rounded-lg border border-border bg-page pl-8 pr-3 py-1.5 text-base sm:text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -426,7 +432,7 @@ export function MessagesPage() {
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Write a message..."
                   maxLength={2000}
-                  className="flex-1 rounded-xl border border-border bg-page px-3.5 py-2 text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
+                  className="flex-1 rounded-xl border border-border bg-page px-3.5 py-2 text-base sm:text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
                 />
                 <Button
                   type="submit"
@@ -469,10 +475,9 @@ export function MessagesPage() {
             <input
               type="text"
               value={userSearchQuery}
-              onChange={(e) => handleSearchUsers(e.target.value)}
+              onChange={(e) => setUserSearchQuery(e.target.value)}
               placeholder="Search by name or @username..."
-              autoFocus
-              className="w-full rounded-xl border border-border bg-page pl-10 pr-3.5 py-2 text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border bg-page pl-10 pr-3.5 py-2.5 text-base sm:text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
             />
           </div>
 

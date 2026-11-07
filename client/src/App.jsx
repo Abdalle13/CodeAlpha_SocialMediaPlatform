@@ -54,10 +54,20 @@ function AppLayout() {
       location.pathname === '/forgot-password' ||
       location.pathname === '/reset-password');
 
+  const isMessagesPage = location.pathname.startsWith('/messages');
+
   return (
-    <div className="flex min-h-screen flex-col bg-page text-primary selection:bg-accent-soft selection:text-accent">
+    <div className="flex min-h-screen flex-col bg-page text-primary selection:bg-accent-soft selection:text-accent overflow-x-hidden max-w-full">
       <Navbar />
-      <main className={`flex-1 flex flex-col ${isAuthPage ? '' : 'pb-24 sm:pb-28'}`}>
+      <main
+        className={`flex-1 flex flex-col ${
+          isAuthPage
+            ? ''
+            : isMessagesPage
+            ? 'pb-16 sm:pb-20'
+            : 'pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:pb-24'
+        }`}
+      >
         <ErrorBoundary>
           <Routes>
             {/* Home and Core Features */}

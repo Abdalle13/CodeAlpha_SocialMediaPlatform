@@ -136,7 +136,7 @@ export function CommentThread({ postId, postAuthorId }) {
               onChange={(e) => setInputBody(e.target.value)}
               placeholder="Write a comment..."
               maxLength={1000}
-              className="flex-1 rounded-lg border border-border bg-page px-3 py-1.5 text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
+              className="flex-1 rounded-lg border border-border bg-page px-3 py-1.5 text-base sm:text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
             />
             <Button
               type="submit"
@@ -259,7 +259,7 @@ export function CommentThread({ postId, postAuthorId }) {
                       placeholder={`Reply to ${author?.display_name || 'user'}...`}
                       maxLength={1000}
                       autoFocus
-                      className="flex-1 rounded-md border border-border bg-page px-2.5 py-1 text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
+                      className="flex-1 rounded-md border border-border bg-page px-2.5 py-1 text-base sm:text-xs text-primary placeholder:text-secondary/60 focus:border-accent focus:outline-none"
                     />
                     <Button
                       size="sm"

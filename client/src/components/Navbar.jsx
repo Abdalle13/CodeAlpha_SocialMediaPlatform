@@ -29,7 +29,7 @@ export function Navbar() {
   // Authenticated user navigation: full-width on mobile, centered pill on laptops, pure white/black, no shadow
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 w-full z-50 flex items-center justify-around bg-white dark:bg-black border-t border-neutral-200 dark:border-neutral-800 py-2 px-3 sm:bottom-5 sm:left-1/2 sm:-translate-x-1/2 sm:w-auto sm:min-w-[340px] sm:max-w-md sm:rounded-full sm:border sm:px-6 sm:py-2 text-primary shadow-none transition-all duration-200"
+      className="fixed bottom-0 left-0 right-0 w-full z-50 flex items-center justify-around bg-white dark:bg-black border-t border-neutral-200 dark:border-neutral-800 pt-2 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] sm:bottom-5 sm:left-1/2 sm:-translate-x-1/2 sm:w-auto sm:min-w-[340px] sm:max-w-md sm:rounded-full sm:border sm:px-6 sm:py-2 text-primary shadow-none transition-all duration-200"
       aria-label="App Navigation Bar"
     >
       {/* 1. Home Feed */}
