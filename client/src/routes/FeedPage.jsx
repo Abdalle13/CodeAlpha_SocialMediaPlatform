@@ -3,6 +3,7 @@ import { useFeed } from '../features/posts/useFeed';
 import { usePosts } from '../features/posts/usePosts';
 import { PostComposer } from '../features/posts/PostComposer';
 import { PostCard } from '../features/posts/PostCard';
+import { StoriesBar } from '../features/stories/StoriesBar';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Skeleton } from '../components/Skeleton';
@@ -83,6 +84,11 @@ export function FeedPage() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
+      </div>
+
+      {/* Stories Bar */}
+      <div className="mb-5 -mx-1">
+        <StoriesBar />
       </div>
 
       {/* Post creation box */}
