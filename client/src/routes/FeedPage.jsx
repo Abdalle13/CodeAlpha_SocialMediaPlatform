@@ -86,14 +86,14 @@ export function FeedPage() {
         </div>
       </div>
 
+      {/* Post creation box */}
+      <div className="mb-5">
+        <PostComposer onPostCreated={handlePostCreated} />
+      </div>
+
       {/* Stories Bar */}
       <div className="mb-5 -mx-1">
         <StoriesBar />
-      </div>
-
-      {/* Post creation box */}
-      <div className="mb-6">
-        <PostComposer onPostCreated={handlePostCreated} />
       </div>
 
       {/* Error Banner */}
