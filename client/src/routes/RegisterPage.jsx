@@ -26,19 +26,6 @@ export function RegisterPage() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    if (name === 'username') {
-      // Auto-sanitize username as user types:
-      // Replace spaces, dots, dashes with underscores, remove invalid symbols, lowercase, max 30 chars
-      const sanitized = value
-        .toLowerCase()
-        .replace(/[\s.-]+/g, '_')
-        .replace(/[^a-z0-9_]/g, '')
-        .slice(0, 30);
-
-      setFormData((prev) => ({ ...prev, username: sanitized }));
-      return;
-    }
-
     setFormData((prev) => {
       const next = {
         ...prev,
@@ -73,27 +60,14 @@ export function RegisterPage() {
       return;
     }
 
-    // Sanitize and ensure valid username
-    let cleanUsername = (formData.username || '').trim().toLowerCase();
-
-    // If user pasted an email address into username field, extract handle
-    if (cleanUsername.includes('@')) {
-      cleanUsername = cleanUsername.split('@')[0];
+    // Validate username format: 3-30 alphanumeric characters or underscores
+    const rawUsername = (formData.username || '').trim();
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(rawUsername)) {
+      setErrorMessage('Username must be 3-30 alphanumeric characters or underscores.');
+      return;
     }
 
-    cleanUsername = cleanUsername
-      .replace(/[\s.-]+/g, '_')
-      .replace(/[^a-z0-9_]/g, '')
-      .slice(0, 30);
-
-    // If still under 3 characters, derive from email or display name
-    if (cleanUsername.length < 3) {
-      const fallback = (formData.email.split('@')[0] || formData.displayName || 'user')
-        .toLowerCase()
-        .replace(/[\s.-]+/g, '_')
-        .replace(/[^a-z0-9_]/g, '');
-      cleanUsername = (fallback + '_' + Math.random().toString(36).slice(2, 6)).slice(0, 30);
-    }
+    const cleanUsername = rawUsername.toLowerCase();
 
     if (!formData.agreeTerms) {
       setErrorMessage('You must accept the Terms of Service and Privacy Notice.');

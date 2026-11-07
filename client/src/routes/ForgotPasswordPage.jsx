@@ -23,24 +23,10 @@ export function ForgotPasswordPage() {
     setNoticeMessage('');
 
     try {
-      // 1. Check if the account actually exists in the database
-      const checkRes = await apiClient('/auth/check-email', {
-        method: 'POST',
-        body: JSON.stringify({ email: email.trim() }),
-      }).catch(() => null);
-
-      if (checkRes && checkRes.exists === false) {
-        setNoticeType('error');
-        setNoticeMessage('No account found with this email address.');
-        setIsLoading(false);
-        return;
-      }
-
-      // 2. Account exists: trigger Supabase password reset email
       await resetPasswordForEmail(email.trim());
       setIsSuccess(true);
       setNoticeType('success');
-      setNoticeMessage('Password recovery instructions have been sent to your email inbox.');
+      setNoticeMessage('If an account exists with this email, password recovery instructions have been sent to your inbox.');
     } catch (err) {
       if (!isConfigured) {
         setNoticeType('error');

@@ -138,6 +138,8 @@ The database schema is managed through ordered SQL migrations in `supabase/migra
 2. `00002_rls_and_security.sql`: Row Level Security enabled on every table, helper functions (`is_admin`, `is_active_user`, `is_conversation_participant`, `start_or_get_direct_conversation`), and privilege enforcement.
 3. `00003_phase4_social_features.sql`: Recursive-safe comment parent validation, bidirectional block verification, post media RLS, and post author moderation privileges.
 4. `00004_admin_and_moderation.sql`: Admin query access on `admin_users`, report resolution policies, and post/profile moderation update policies.
+5. `00005_notification_triggers.sql`: Automated database triggers for likes, comments, follows, and direct message notifications.
+6. `00006_resolve_login_identity.sql`: Secure RPC function for identifier resolution supporting both email and username logins.
 
 ---
 
@@ -150,6 +152,8 @@ Copy `.env.example` to `.env` in both client and server directories:
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_API_BASE_URL=http://localhost:5000/api
+VITE_IMAGEKIT_PUBLIC_KEY=your-imagekit-public-key
+VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-id
 ```
 
 ### Server (`server/.env`)
