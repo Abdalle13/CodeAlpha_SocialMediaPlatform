@@ -33,10 +33,10 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Safety timeout: Never keep screen blank/loading for more than 2.5s on slow mobile networks
+      // Safety timeout: Never keep screen blank indefinitely on slow mobile networks, but allow ample time for DNS/TLS
       const safetyTimer = setTimeout(() => {
         if (mounted) setIsLoading(false);
-      }, 2500);
+      }, 8000);
 
       try {
         const { data: { session: initialSession }, error } = await supabase.auth.getSession();
@@ -111,7 +111,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const signIn = async (identity, password, rememberMe = false) => {
+  const signIn = async (identity, password, rememberMe = true) => {
     if (!isSupabaseConfigured()) {
       throw new Error('Supabase project credentials are not configured in environment variables.');
     }
@@ -165,13 +165,23 @@ export function AuthProvider({ children }) {
     // 2. Try resolving via backend Express API if not yet verified
     if (!identityVerified && !cleanIdentity.includes('@')) {
       try {
-        const apiBase = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
-        const res = await fetch(`${apiBase}/auth/resolve-identity`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identity: cleanIdentity }),
-        });
-        const json = await res.json().catch(() => null);
+        const apiBase = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '/api' : 'https://veyra-nine-eosin.vercel.app/api');
+        let res = null;
+        try {
+          res = await fetch(`${apiBase}/auth/resolve-identity`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identity: cleanIdentity }),
+          });
+        } catch {
+          // Direct fallback to Vercel production API
+          res = await fetch(`https://veyra-nine-eosin.vercel.app/api/auth/resolve-identity`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identity: cleanIdentity }),
+          });
+        }
+        const json = await res?.json().catch(() => null);
         if (json && json.exists && json.email) {
           resolvedEmail = json.email;
           identityVerified = true;

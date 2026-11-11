@@ -17,22 +17,9 @@ export function createApp() {
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }));
 
-  // Strict CORS configuration
+  // Universal CORS configuration
   app.use(cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (such as mobile apps or curl), wildcard, Vercel deployments, or allowedOrigins
-      if (
-        !origin ||
-        config.allowedOrigins.includes('*') ||
-        config.allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app') ||
-        origin.includes('localhost')
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS blocked for origin: ${origin}`));
-      }
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Bootstrap-Secret'],

@@ -22,11 +22,7 @@ export const authStorage = {
   setRememberPreference: (remember) => {
     try {
       if (typeof window === 'undefined') return;
-      if (remember) {
-        window.localStorage?.setItem(REMEMBER_PREF_KEY, 'true');
-      } else {
-        window.localStorage?.setItem(REMEMBER_PREF_KEY, 'false');
-      }
+      window.localStorage?.setItem(REMEMBER_PREF_KEY, remember ? 'true' : 'false');
     } catch {
       // Ignore if localStorage unavailable
     }
@@ -35,11 +31,13 @@ export const authStorage = {
   getItem: (key) => {
     try {
       if (typeof window === 'undefined') return memoryStore.get(key) || null;
-      const isRemembered = window.localStorage?.getItem(REMEMBER_PREF_KEY) === 'true';
-      if (isRemembered) {
-        return window.localStorage?.getItem(key) || memoryStore.get(key) || null;
-      }
-      return window.sessionStorage?.getItem(key) || window.localStorage?.getItem(key) || memoryStore.get(key) || null;
+      // Robust lookup: check localStorage first, then sessionStorage, then memory fallback
+      return (
+        window.localStorage?.getItem(key) ||
+        window.sessionStorage?.getItem(key) ||
+        memoryStore.get(key) ||
+        null
+      );
     } catch {
       return memoryStore.get(key) || null;
     }
@@ -49,7 +47,7 @@ export const authStorage = {
     memoryStore.set(key, value);
     try {
       if (typeof window === 'undefined') return;
-      const isRemembered = window.localStorage?.getItem(REMEMBER_PREF_KEY) === 'true';
+      const isRemembered = authStorage.isRemembered();
       if (isRemembered) {
         window.localStorage?.setItem(key, value);
         try { window.sessionStorage?.removeItem(key); } catch {}
@@ -89,3 +87,4 @@ export const authStorage = {
     } catch {}
   },
 };
+

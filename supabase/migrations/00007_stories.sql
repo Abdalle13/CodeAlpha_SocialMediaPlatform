@@ -72,3 +72,4 @@ CREATE POLICY "story_views_owner_select" ON story_views
     )
     OR auth.uid() = viewer_id
   );
+

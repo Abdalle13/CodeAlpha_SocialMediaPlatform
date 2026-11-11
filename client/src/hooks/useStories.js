@@ -72,10 +72,10 @@ export function useStories() {
       }
 
       // Convert to array: own stories first, then others
-      const list = Object.values(grouped);
+      const list = Object.values(grouped).filter((g) => g && g.user);
       list.sort((a, b) => {
-        if (a.user.id === user.id) return -1;
-        if (b.user.id === user.id) return 1;
+        if (a.user?.id === user.id) return -1;
+        if (b.user?.id === user.id) return 1;
         // Unviewed before viewed
         if (a.hasUnviewed && !b.hasUnviewed) return -1;
         if (!a.hasUnviewed && b.hasUnviewed) return 1;
